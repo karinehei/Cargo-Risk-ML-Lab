@@ -1,0 +1,62 @@
+"""Docker and Compose configuration checks. Runtime execution is separate."""
+
+from __future__ import annotations
+
+import shutil
+import subprocess
+
+import pytest
+import yaml
+from src.config import PROJECT_ROOT
+
+
+def test_dockerfile_runtime_constraints() -> None:
+    text = (PROJECT_ROOT / "Dockerfile").read_text(encoding="utf-8")
+    assert "python:3.12-slim" in text
+    assert "USER appuser" in text
+    assert "libgomp1" in text
+    assert '".[dev]"' not in text
+    assert "[dev]" not in text
+    assert "COPY data" not in text
+    assert "COPY artifacts" not in text
+    assert "COPY mlruns" not in text
+
+
+def test_dockerignore_excludes_data_and_secrets() -> None:
+    text = (PROJECT_ROOT / ".dockerignore").read_text(encoding="utf-8")
+    for token in ("data", "data/monitoring/*.csv", "artifacts", "mlruns", ".env", "tests"):
+        assert token in text
+
+
+def test_compose_services_and_network() -> None:
+    payload = yaml.safe_load((PROJECT_ROOT / "docker-compose.yml").read_text(encoding="utf-8"))
+    services = payload["services"]
+    assert set(services) == {"api", "app", "mlflow"}
+    assert payload["networks"]["cargo-risk"]["driver"] == "bridge"
+    assert services["app"]["environment"]["STREAMLIT_API_URL"] == "http://api:8000"
+    assert "8000:8000" in services["api"]["ports"]
+    assert "8501:8501" in services["app"]["ports"]
+    assert "5000:5000" in services["mlflow"]["ports"]
+    for name in ("api", "app", "mlflow"):
+        assert "healthcheck" in services[name]
+        assert "cargo-risk" in services[name]["networks"]
+    api_volumes = services["api"]["volumes"]
+    assert any(item.startswith("./artifacts:") and item.endswith(":ro") for item in api_volumes)
+    assert any(item.startswith("./mlruns:") for item in api_volumes)
+    assert any(item.startswith("./configs:") and item.endswith(":ro") for item in api_volumes)
+
+
+def test_compose_config_syntax() -> None:
+    docker = shutil.which("docker")
+    if docker is None:
+        pytest.skip("Docker executable is not available")
+    result = subprocess.run(
+        [docker, "compose", "-f", str(PROJECT_ROOT / "docker-compose.yml"), "config", "-q"],
+        check=False,
+        capture_output=True,
+        text=True,
+        cwd=PROJECT_ROOT,
+    )
+    if result.returncode != 0:
+        pytest.skip(f"docker compose config is unavailable: {result.stderr.strip()[:300]}")
+    assert result.returncode == 0

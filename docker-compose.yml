@@ -1,0 +1,107 @@
+services:
+  api:
+    build: .
+    image: cargo-risk-ml-lab:local
+    container_name: cargo-risk-api
+    command: uvicorn src.api.main:app --host 0.0.0.0 --port 8000
+    working_dir: /app
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./configs:/app/configs:ro
+      - ./artifacts:/app/artifacts:ro
+      - ./docs:/app/docs:ro
+      - ./mlruns:/app/mlruns
+    environment:
+      APP_ENV: docker
+      LOG_LEVEL: INFO
+      CONFIG_PATH: configs/default.yaml
+      ARTIFACTS_DIR: artifacts
+      MLFLOW_TRACKING_URI: sqlite:///mlruns/mlflow.db
+      MLFLOW_EXPERIMENT_NAME: cargo-risk-ml-lab
+      CHAMPION_PATH: artifacts/mlops/champion.json
+      API_MAX_BATCH_SIZE: "100"
+      API_MAX_REQUEST_BYTES: "1048576"
+    networks:
+      - cargo-risk
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/ready', timeout=4)",
+        ]
+      interval: 15s
+      timeout: 5s
+      retries: 8
+      start_period: 40s
+
+  app:
+    image: cargo-risk-ml-lab:local
+    container_name: cargo-risk-app
+    command: streamlit run app/streamlit_app.py --server.port=8501 --server.address=0.0.0.0 --server.headless=true
+    working_dir: /app
+    ports:
+      - "8501:8501"
+    volumes:
+      - ./configs:/app/configs:ro
+      - ./artifacts:/app/artifacts:ro
+      - ./docs:/app/docs:ro
+      - ./mlruns:/app/mlruns
+    environment:
+      APP_ENV: docker
+      LOG_LEVEL: INFO
+      CONFIG_PATH: configs/default.yaml
+      ARTIFACTS_DIR: artifacts
+      MLFLOW_TRACKING_URI: sqlite:///mlruns/mlflow.db
+      CHAMPION_PATH: artifacts/mlops/champion.json
+      STREAMLIT_API_URL: http://api:8000
+    depends_on:
+      api:
+        condition: service_healthy
+    networks:
+      - cargo-risk
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8501/_stcore/health', timeout=4)",
+        ]
+      interval: 20s
+      timeout: 5s
+      retries: 8
+      start_period: 40s
+
+  mlflow:
+    image: cargo-risk-ml-lab:local
+    container_name: cargo-risk-mlflow
+    command: mlflow ui --backend-store-uri sqlite:///mlruns/mlflow.db --host 0.0.0.0 --port 5000
+    working_dir: /app
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./mlruns:/app/mlruns
+    environment:
+      MLFLOW_TRACKING_URI: sqlite:///mlruns/mlflow.db
+    networks:
+      - cargo-risk
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://127.0.0.1:5000/', timeout=4)",
+        ]
+      interval: 20s
+      timeout: 5s
+      retries: 8
+      start_period: 30s
+
+networks:
+  cargo-risk:
+    name: cargo-risk
+    driver: bridge

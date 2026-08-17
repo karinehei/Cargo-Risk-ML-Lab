@@ -1,0 +1,202 @@
+# Cargo Risk ML Lab – default configuration
+# All settings apply to SYNTHETIC educational data only.
+
+project:
+  name: cargo-risk-ml-lab
+  disclaimer: >
+    This project uses fully synthetic data and fictional review logic for
+    educational demonstration. It does not represent any customs authority,
+    real border processes, or operational risk-assessment systems.
+    The label-generating rules are toys and must not be used for real decisions.
+
+random_seed: 42
+
+data:
+  n_samples: 15000
+  split_strategy: stratified
+  test_size: 0.2
+  val_size: 0.1
+  target_positive_rate: 0.11
+  positive_rate_min: 0.08
+  positive_rate_max: 0.15
+  label_flip_rate: 0.025
+  logit_noise_std: 0.65
+  period_fractions: [0.45, 0.20, 0.20, 0.15]
+  drift_start_period: 2
+  train_periods: [0, 1]
+  val_periods: [2]
+  test_periods: [3]
+  raw_path: data/raw/synthetic_shipments.csv
+  processed_dir: data/processed
+  validation_report_path: data/raw/validation_report.json
+  target_column: requires_review
+  id_column: shipment_id
+  period_column: generation_period
+  missing_rate_min: 0.005
+  missing_rate_max: 0.08
+  missing_rates:
+    declaration_completeness_score: 0.025
+    documentation_count: 0.02
+    sender_history_length: 0.02
+    route_rarity: 0.015
+    declared_vs_estimated_value_deviation: 0.03
+
+features:
+  numeric:
+    - declared_value_eur
+    - shipment_weight_kg
+    - value_to_weight_ratio
+    - declaration_completeness_score
+    - documentation_count
+    - previous_discrepancies
+    - sender_history_length
+    - route_rarity
+    - declared_vs_estimated_value_deviation
+    - submission_hour
+    - expedited_shipment
+  categorical:
+    - transport_mode
+    - origin_region
+    - destination_region
+    - commodity_category
+  derived:
+    - log_declared_value
+    - is_off_hours
+
+model:
+  algorithm: xgboost
+  class_weight: balanced
+  threshold: 0.5
+
+training:
+  cv_folds: 3
+  cv_scoring: average_precision
+  selection_metric: pr_auc
+  search_enabled: true
+  n_jobs: 1
+  latency_repeats: 200
+  threshold:
+    objective: fbeta
+    beta: 2.0
+    min_precision: 0.20
+    grid_size: 37
+  candidates:
+    - dummy
+    - logreg
+    - random_forest
+    - xgboost
+  search_grids:
+    dummy: {}
+    logreg:
+      model__C: [0.25, 1.0, 4.0]
+    random_forest:
+      model__n_estimators: [80, 120]
+      model__max_depth: [6, 12]
+    xgboost:
+      model__n_estimators: [80, 120]
+      model__max_depth: [3, 5]
+      model__learning_rate: [0.05, 0.1]
+  mlflow_experiment: cargo-risk-ml-lab
+  artifact_dir: artifacts
+
+mlops:
+  experiment_name: cargo-risk-ml-lab
+  champion_path: artifacts/mlops/champion.json
+  sklearn_serialization_format: cloudpickle
+  roundtrip_rtol: 1.0e-7
+  roundtrip_atol: 1.0e-10
+  champion_policy:
+    version: "1.0.0"
+    min_validation_recall: 0.40
+    min_validation_pr_auc: 0.15
+    pr_auc_indifference: 0.005
+    max_latency_p99_ms: 100.0
+    require_roundtrip: true
+    simplicity_order:
+      - dummy
+      - logreg
+      - logreg_uncalibrated_weighted
+      - logreg_unweighted
+      - logreg_sigmoid
+      - logreg_isotonic
+      - random_forest
+      - xgboost
+
+evaluation:
+  metrics:
+    - roc_auc
+    - average_precision
+    - f1
+    - precision
+    - recall
+    - accuracy
+    - brier_score
+  plots_dir: artifacts/plots
+
+explainability:
+  max_samples: 200
+  top_features: 15
+  output_dir: artifacts/explanations
+  permutation_repeats: 10
+  subgroup_min_n: 50
+  local_example_rows: 3
+  reconstruction_atol: 1.0e-8
+
+# Operational monitoring policy. Effect-size thresholds are not p-value cutoffs
+# and were not tuned on demonstration moderate/major scenarios. Policy 1.1.0
+# keeps PSI/KS/SMD/JS/TV/missingness cutoffs from v1.0.0, aggregates isolated
+# vs coordinated drift, and raises predicted-review-rate warning from 0.03 to
+# 0.05 after null Monte Carlo (n=150, n_ref=5000, n_cur=1200) showed 0.03 at
+# the sampling p95 (p95≈0.029, p99≈0.034, max≈0.042). Critical remains 0.08.
+# Raw monitoring CSVs under data/monitoring/ are local-only; recreate with
+# `make monitoring-reference` / `make monitoring-scenario`.
+monitoring:
+  policy_version: "1.1.0"
+  min_warning_features: 2
+  null_replications: 150
+  null_seed_base: 92001
+  drift_threshold: 0.15
+  psi_bins: 10
+  min_batch_size: 50
+  scenario_batch_size: 1200
+  reference_seed: 42
+  reference_sample_size: 5000
+  reference_dataset_path: data/processed/train.csv
+  reference_sample_path: data/monitoring/reference_sample.csv
+  reference_profile_path: artifacts/monitoring/reference_profile.json
+  scenario_dir: data/monitoring
+  report_dir: artifacts/monitoring
+  mlflow_experiment: cargo-risk-monitoring
+  severity_thresholds:
+    psi_warning: 0.10
+    psi_critical: 0.25
+    ks_warning: 0.10
+    ks_critical: 0.20
+    smd_warning: 0.20
+    smd_critical: 0.50
+    js_warning: 0.05
+    js_critical: 0.15
+    tv_warning: 0.10
+    tv_critical: 0.25
+    unseen_warning: 0.01
+    unseen_critical: 0.05
+    missing_delta_warning: 0.05
+    missing_delta_critical: 0.15
+    score_psi_warning: 0.10
+    score_psi_critical: 0.25
+    review_rate_delta_warning: 0.05
+    review_rate_delta_critical: 0.08
+  legacy_prediction_threshold: 0.525
+
+api:
+  model_path: artifacts/model.joblib
+  pipeline_path: artifacts/preprocess_pipeline.joblib
+  metadata_path: artifacts/model_metadata.json
+  title: Cargo Risk ML Lab API
+  version: "0.1.0"
+  max_batch_size: 100
+  max_request_bytes: 1048576
+
+logging:
+  level: INFO
+  format: "%(asctime)s | %(levelname)s | %(name)s | %(message)s"
