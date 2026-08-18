@@ -88,7 +88,9 @@ def load_champion(champion_path: str | None = None) -> ServingBundle:
         if "checksum" in detail:
             raise ChampionLoadError("Champion artifact checksum mismatch.") from exc
         if "does not match" in detail:
-            raise ChampionLoadError("Champion artifact URI does not match the recorded run.") from exc
+            raise ChampionLoadError(
+                "Champion artifact URI does not match the recorded run."
+            ) from exc
         raise ChampionLoadError("Champion artifact URI is unsupported.") from exc
 
     try:

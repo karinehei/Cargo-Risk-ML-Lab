@@ -319,7 +319,7 @@ def evaluate_comparison(
         policy_version=policy_version,
     )
     try:
-        reference_profile = load_reference_profile()
+        reference_profile = load_reference_profile(config=config)
         reference_fingerprint = str(reference_profile.get("dataset_fingerprint") or "")
     except FileNotFoundError:
         from src.mlops.fingerprints import dataframe_fingerprint as _fp
@@ -371,7 +371,7 @@ def evaluate_comparison(
 
 
 def _previous_window(config: AppConfig, scenario: str) -> tuple[str | None, list[str] | None]:
-    status = load_latest_status()
+    status = load_latest_status(config=config)
     if not status.get("available"):
         return None, None
     if str(status.get("scenario") or "") != str(scenario):
@@ -397,7 +397,7 @@ def run_monitoring(
     cfg = config or get_config()
     try:
         try:
-            reference_profile = load_reference_profile()
+            reference_profile = load_reference_profile(config=cfg)
         except FileNotFoundError:
             report = _incomplete_report(
                 status="insufficient_data",

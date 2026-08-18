@@ -184,7 +184,9 @@ def main() -> None:
                     ],
                     "val_recall_selected_t": candidate.val_metrics_at_selected_threshold["recall"],
                     "selected_threshold": candidate.selected_threshold,
-                    "val_precision_frozen_t": candidate.val_metrics_at_frozen_threshold["precision"],
+                    "val_precision_frozen_t": candidate.val_metrics_at_frozen_threshold[
+                        "precision"
+                    ],
                     "val_recall_frozen_t": candidate.val_metrics_at_frozen_threshold["recall"],
                     "frozen_threshold": FROZEN_OPERATING_THRESHOLD,
                     "run_id": record["run_id"],

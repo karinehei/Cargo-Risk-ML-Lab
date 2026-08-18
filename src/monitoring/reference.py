@@ -193,8 +193,10 @@ def save_reference_profile(
     return str(output)
 
 
-def load_reference_profile(path: str | None = None) -> dict[str, Any]:
-    cfg = get_config()
+def load_reference_profile(
+    path: str | None = None, *, config: AppConfig | None = None
+) -> dict[str, Any]:
+    cfg = config or get_config()
     profile_path = resolve_path(
         path
         or str(

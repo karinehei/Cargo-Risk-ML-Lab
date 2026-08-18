@@ -8,7 +8,7 @@ import uuid
 from pathlib import Path
 from typing import Any, cast
 
-from src.config import get_config, resolve_path, setup_logging
+from src.config import AppConfig, get_config, resolve_path, setup_logging
 
 logger = setup_logging(name="src.monitoring.report")
 
@@ -210,8 +210,8 @@ def write_monitoring_report(
     }
 
 
-def load_latest_status() -> dict[str, Any]:
-    cfg = get_config()
+def load_latest_status(*, config: AppConfig | None = None) -> dict[str, Any]:
+    cfg = config or get_config()
     status_path = (
         resolve_path(str(cfg.monitoring.get("report_dir", "artifacts/monitoring"))) / "status.json"
     )

@@ -9,7 +9,7 @@
 	clean
 
 PYTHON ?= python
-PIP ?= pip
+PIP ?= $(PYTHON) -m pip
 
 help:
 	@echo "Cargo Risk ML Lab – common targets"
@@ -67,17 +67,17 @@ install-locked:
 	$(PIP) install --no-deps -e .
 
 format:
-	ruff format src app scripts tests
-	ruff check --fix src app scripts tests
+	$(PYTHON) -m ruff format src app scripts tests
+	$(PYTHON) -m ruff check --fix src app scripts tests
 
 lint:
-	ruff check src app scripts tests
+	$(PYTHON) -m ruff check src app scripts tests
 
 typecheck:
-	mypy src app
+	$(PYTHON) -m mypy src app
 
 test:
-	pytest --cov=src --cov-report=term-missing
+	$(PYTHON) -m pytest --cov=src --cov-report=term-missing
 
 bootstrap-demo:
 	$(PYTHON) -m scripts.bootstrap_demo --mode full
@@ -86,16 +86,16 @@ bootstrap-ci:
 	$(PYTHON) -m scripts.bootstrap_demo --mode ci
 
 bandit:
-	bandit -c bandit.yaml -r src app scripts
+	$(PYTHON) -m bandit -c bandit.yaml -r src app scripts
 
 pip-audit:
-	pip-audit -r requirements/dev.lock.txt
+	$(PYTHON) -m pip_audit -r requirements/dev.lock.txt
 
 secrets-scan:
-	detect-secrets scan --baseline .secrets.baseline --exclude-files '\.ci-work/.*|mlruns/.*|artifacts/.*|.*\.lock\.txt|sbom.*'
+	$(PYTHON) -m detect_secrets scan --baseline .secrets.baseline --exclude-files '\.ci-work/.*|mlruns/.*|artifacts/.*|.*\.lock\.txt|sbom.*'
 
 sbom:
-	cyclonedx-py environment -o sbom.cdx.json --pyproject pyproject.toml
+	$(PYTHON) -c "import subprocess, sys; from pathlib import Path; script = Path(sys.executable).resolve().parent / 'cyclonedx-py'; subprocess.check_call([str(script), 'environment', '-o', 'sbom.cdx.json', '--pyproject', 'pyproject.toml'])"
 
 repo-audit:
 	$(PYTHON) -m scripts.audit_repository_boundary
@@ -123,7 +123,7 @@ mlflow-init:
 	$(PYTHON) -m scripts.init_mlflow
 
 mlflow-ui:
-	mlflow ui --backend-store-uri sqlite:///mlruns/mlflow.db --port 5000
+	$(PYTHON) -m mlflow ui --backend-store-uri sqlite:///mlruns/mlflow.db --port 5000
 
 mlflow-list:
 	$(PYTHON) -m scripts.list_mlflow_runs
@@ -141,10 +141,10 @@ explain:
 	$(PYTHON) -m scripts.explain_model
 
 serve-api:
-	uvicorn src.api.main:app --host 0.0.0.0 --port 8000 --reload
+	$(PYTHON) -m uvicorn src.api.main:app --host 0.0.0.0 --port 8000 --reload
 
 serve-app:
-	streamlit run app/streamlit_app.py
+	$(PYTHON) -m streamlit run app/streamlit_app.py
 
 api-health:
 	$(PYTHON) -c "import urllib.request; print(urllib.request.urlopen('http://127.0.0.1:8000/health').read().decode())"

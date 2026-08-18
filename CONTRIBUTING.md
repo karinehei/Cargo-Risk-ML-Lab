@@ -17,7 +17,10 @@ If lock files are being regenerated, see `docs/dependencies.md`.
 
 ## Checks before a pull request
 
+Activate the project virtualenv first so `make` uses its Python (and Ruff):
+
 ```bash
+source ~/.venvs/cargo-risk-ml-lab/bin/activate   # or: source .venv/bin/activate
 make format
 make lint
 make typecheck
