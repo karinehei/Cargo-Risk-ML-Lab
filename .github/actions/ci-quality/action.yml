@@ -1,0 +1,79 @@
+name: CI quality
+description: Locked install, lint, tests, audits, CI bootstrap and host API smoke.
+
+runs:
+  using: composite
+  steps:
+    - name: Set up Python
+      uses: actions/setup-python@8d9ed9ac5c53483de85588cdf95a591a75ab9f55 # v5.5.0
+      with:
+        python-version: "3.12"
+        cache: pip
+        cache-dependency-path: |
+          requirements/dev.lock.txt
+          pyproject.toml
+
+    - name: Install locked dependencies
+      shell: bash
+      run: |
+        python -m pip install --upgrade pip
+        python -m pip install --require-hashes -r requirements/dev.lock.txt
+        python -m pip install --no-deps -e .
+
+    - name: Ruff format check
+      shell: bash
+      run: ruff format --check src app scripts tests
+
+    - name: Ruff lint
+      shell: bash
+      run: ruff check src app scripts tests
+
+    - name: Mypy
+      shell: bash
+      run: mypy src app
+
+    - name: Bandit
+      shell: bash
+      run: bandit -c bandit.yaml -r src app scripts -f json -o bandit-report.json
+
+    - name: Secret scan
+      shell: bash
+      run: >
+        detect-secrets scan --baseline .secrets.baseline
+        --exclude-files '\.ci-work/.*|mlruns/.*|artifacts/.*|.*\.lock\.txt|sbom.*'
+
+    - name: Pytest with coverage
+      shell: bash
+      run: >
+        pytest --cov=src --cov-report=term-missing --cov-report=xml
+        --cov-report=json --junitxml=junit.xml
+
+    - name: Dependency audit
+      shell: bash
+      run: pip-audit -r requirements/dev.lock.txt --format json --output pip-audit.json
+      continue-on-error: true
+
+    - name: SBOM
+      shell: bash
+      run: cyclonedx-py environment -o sbom.cdx.json --pyproject pyproject.toml
+      continue-on-error: true
+
+    - name: Repository boundary audit
+      shell: bash
+      run: python -m scripts.audit_repository_boundary
+
+    - name: Lightweight clean bootstrap (not frozen-v1)
+      shell: bash
+      run: python -m scripts.bootstrap_demo --mode ci --skip-api
+      env:
+        PYTHONPATH: ${{ github.workspace }}
+
+    - name: Start API with CI artifacts
+      shell: bash
+      run: bash scripts/ci/smoke_api.sh
+      env:
+        CONFIG_PATH: configs/ci.yaml
+        CHAMPION_PATH: .ci-work/artifacts/mlops/champion.json
+        MLFLOW_TRACKING_URI: sqlite:///.ci-work/mlruns/mlflow.db
+        MLFLOW_EXPERIMENT_NAME: cargo-risk-ml-lab-ci
+        PYTHONPATH: ${{ github.workspace }}

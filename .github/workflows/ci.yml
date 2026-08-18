@@ -1,5 +1,6 @@
 # CI for Cargo Risk ML Lab (educational / synthetic ML portfolio)
 # Third-party actions are pinned to commit SHAs. Comments record the upstream tag.
+# Long steps live in .github/actions/ and scripts/ci/.
 name: CI
 
 on:
@@ -25,150 +26,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
-      - name: Set up Python
-        uses: actions/setup-python@8d9ed9ac5c53483de85588cdf95a591a75ab9f55 # v5.5.0
-        with:
-          python-version: "3.12"
-          cache: pip
-          cache-dependency-path: |
-            requirements/dev.lock.txt
-            pyproject.toml
+      - name: Quality checks and API smoke
+        uses: ./.github/actions/ci-quality
 
-      - name: Install locked dependencies
-        run: |
-          python -m pip install --upgrade pip
-          python -m pip install --require-hashes -r requirements/dev.lock.txt
-          python -m pip install --no-deps -e .
-
-      - name: Ruff format check
-        run: ruff format --check src app scripts tests
-
-      - name: Ruff lint
-        run: ruff check src app scripts tests
-
-      - name: Mypy
-        run: mypy src app
-
-      - name: Bandit
-        run: bandit -c bandit.yaml -r src app scripts -f json -o bandit-report.json
-
-      - name: Secret scan
-        run: >
-          detect-secrets scan --baseline .secrets.baseline
-          --exclude-files '\.ci-work/.*|mlruns/.*|artifacts/.*|.*\.lock\.txt|sbom.*'
-
-      - name: Pytest with coverage
-        run: >
-          pytest --cov=src --cov-report=term-missing --cov-report=xml
-          --cov-report=json --junitxml=junit.xml
-
-      - name: Dependency audit
-        run: pip-audit -r requirements/dev.lock.txt --format json --output pip-audit.json
-        continue-on-error: true
-
-      - name: SBOM
-        run: cyclonedx-py environment -o sbom.cdx.json --pyproject pyproject.toml
-        continue-on-error: true
-
-      - name: Repository boundary audit
-        run: python -m scripts.audit_repository_boundary
-
-      - name: Lightweight clean bootstrap (not frozen-v1)
-        run: python -m scripts.bootstrap_demo --mode ci --skip-api
-        env:
-          PYTHONPATH: ${{ github.workspace }}
-
-      - name: Start API with CI artifacts
-        run: |
-          python -m uvicorn src.api.main:app --host 127.0.0.1 --port 8000 &
-          uvicorn_pid=$!
-          cleanup() { kill "$uvicorn_pid" 2>/dev/null || true; wait "$uvicorn_pid" 2>/dev/null || true; }
-          trap cleanup EXIT
-          for i in $(seq 1 40); do
-            if curl -fsS http://127.0.0.1:8000/health >/dev/null; then
-              break
-            fi
-            sleep 1
-          done
-          curl -fsS http://127.0.0.1:8000/health
-          curl -fsS http://127.0.0.1:8000/ready
-          curl -fsS http://127.0.0.1:8000/predict \
-            -H "Content-Type: application/json" \
-            -d '{"origin_region":"Asia","destination_region":"Northern Europe","commodity_category":"electronics","transport_mode":"air","declared_value_eur":12500.0,"shipment_weight_kg":85.5,"previous_discrepancies":0,"submission_hour":10,"expedited_shipment":0}'
-          curl -fsS http://127.0.0.1:8000/explain \
-            -H "Content-Type: application/json" \
-            -d '{"origin_region":"Asia","destination_region":"Northern Europe","commodity_category":"electronics","transport_mode":"air","declared_value_eur":12500.0,"shipment_weight_kg":85.5,"previous_discrepancies":0,"submission_hour":10,"expedited_shipment":0}'
-        env:
-          CONFIG_PATH: configs/ci.yaml
-          CHAMPION_PATH: .ci-work/artifacts/mlops/champion.json
-          MLFLOW_TRACKING_URI: sqlite:///.ci-work/mlruns/mlflow.db
-          MLFLOW_EXPERIMENT_NAME: cargo-risk-ml-lab-ci
-          PYTHONPATH: ${{ github.workspace }}
-
-      - name: Validate Docker Compose configuration
-        run: docker compose config -q
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@b5ca514318bd6ebac0fb2aedd5d36ec1b5c232a2 # v3.10.0
-
-      - name: Build image
-        uses: docker/build-push-action@471d1dc4e07e5cdedd4c2171150001c434f0b7a4 # v6.15.0
-        with:
-          context: .
-          load: true
-          tags: cargo-risk-ml-lab:ci
-
-      - name: Inspect non-root user
-        run: |
-          user=$(docker image inspect cargo-risk-ml-lab:ci --format '{{.Config.User}}')
-          test "$user" = "appuser"
-
-      - name: Run container health check
-        run: |
-          chmod -R a+rX .ci-work
-          chmod -R a+rwX .ci-work/mlruns
-          if [ -d mlruns ]; then
-            chmod -R a+rX mlruns
-            chmod -R a+rwX mlruns
-          fi
-          docker run -d --name cargo-risk-api-ci --user 1000:1000 \
-            -e CONFIG_PATH=configs/ci.yaml \
-            -e CHAMPION_PATH=.ci-work/artifacts/mlops/champion.json \
-            -e MLFLOW_TRACKING_URI=sqlite:///.ci-work/mlruns/mlflow.db \
-            -e MLFLOW_EXPERIMENT_NAME=cargo-risk-ml-lab-ci \
-            -v "$PWD:$PWD" \
-            -v "$PWD/.ci-work:/app/.ci-work" \
-            -w /app \
-            -p 8011:8000 \
-            cargo-risk-ml-lab:ci
-          cleanup() {
-            docker logs cargo-risk-api-ci || true
-            docker inspect --format '{{json .State}}' cargo-risk-api-ci || true
-            docker rm -f cargo-risk-api-ci || true
-          }
-          trap cleanup EXIT
-          for i in $(seq 1 50); do
-            status=$(docker inspect --format '{{.State.Health.Status}}' cargo-risk-api-ci || true)
-            if [ "$status" = "healthy" ]; then
-              break
-            fi
-            if [ "$(docker inspect --format '{{.State.Running}}' cargo-risk-api-ci || true)" != "true" ]; then
-              echo "Container exited before becoming healthy"
-              exit 1
-            fi
-            sleep 2
-          done
-          docker inspect --format '{{.State.Health.Status}}' cargo-risk-api-ci | grep healthy
-          curl -fsS http://127.0.0.1:8011/health
-          curl -fsS http://127.0.0.1:8011/ready
-
-      - name: Scan image (HIGH/CRITICAL)
-        uses: aquasecurity/trivy-action@57a97c7e7821a5776cebc9bb87c984fa69cba8f1 # 0.35.0 (post 2026-03 incident; do not use older tags)
-        with:
-          image-ref: cargo-risk-ml-lab:ci
-          severity: HIGH,CRITICAL
-          exit-code: "1"
-          ignore-unfixed: true
+      - name: Container build and health
+        uses: ./.github/actions/ci-container
 
       - name: Upload safe reports
         if: always()

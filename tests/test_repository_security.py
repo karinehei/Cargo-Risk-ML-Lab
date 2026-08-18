@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import os
 import re
+from pathlib import Path
 
 import pytest
 import yaml
@@ -11,6 +12,15 @@ from src.config import PROJECT_ROOT
 from src.mlops.integrity import ArtifactIntegrityError, validate_artifact_uri
 
 SHA_RE = re.compile(r"^[0-9a-f]{40}$")
+GITHUB_DIR = PROJECT_ROOT / ".github"
+
+
+def _github_yaml_files() -> list[Path]:
+    return sorted(path for path in GITHUB_DIR.rglob("*") if path.suffix in {".yml", ".yaml"})
+
+
+def _github_yaml_text() -> str:
+    return "\n".join(path.read_text(encoding="utf-8") for path in _github_yaml_files())
 
 
 def test_gitignore_and_dockerignore_exclude_runtime_secrets() -> None:
@@ -72,23 +82,27 @@ def test_artifact_uri_validation_rejects_filesystem_and_http() -> None:
 
 def test_github_actions_minimum_permissions_and_pinned_shas() -> None:
     workflow_path = PROJECT_ROOT / ".github" / "workflows" / "ci.yml"
-    text = workflow_path.read_text(encoding="utf-8")
-    workflow = yaml.safe_load(text)
+    workflow = yaml.safe_load(workflow_path.read_text(encoding="utf-8"))
     permissions = workflow.get("permissions") or {}
     assert permissions.get("contents") == "read"
+    text = _github_yaml_text()
     assert "contents: write" not in text
     assert "@main" not in text
     assert "scripts.bootstrap_demo" in text
     assert "--mode ci" in text
     assert "evaluate_model" not in text
-    for match in re.finditer(r"uses:\s+(\S+)", text):
-        ref = match.group(1)
-        if ref.startswith("./"):
-            continue
-        _name, _, version = ref.partition("@")
-        assert version, ref
-        sha = version.split("#")[0].strip()
-        assert SHA_RE.match(sha), ref
+    assert "uses: ./.github/actions/ci-quality" in workflow_path.read_text(encoding="utf-8")
+    assert "uses: ./.github/actions/ci-container" in workflow_path.read_text(encoding="utf-8")
+    for path in _github_yaml_files():
+        body = path.read_text(encoding="utf-8")
+        for match in re.finditer(r"uses:\s+(\S+)", body):
+            ref = match.group(1)
+            if ref.startswith("./"):
+                continue
+            _name, _, version = ref.partition("@")
+            assert version, f"{path}: {ref}"
+            sha = version.split("#")[0].strip()
+            assert SHA_RE.match(sha), f"{path}: {ref}"
 
 
 def test_docker_user_is_non_root() -> None:
@@ -113,6 +127,6 @@ def test_api_logs_do_not_include_feature_fields() -> None:
 
 
 def test_workflow_does_not_require_cloud_credentials() -> None:
-    text = (PROJECT_ROOT / ".github" / "workflows" / "ci.yml").read_text(encoding="utf-8")
+    text = _github_yaml_text()
     for token in ("AWS_", "AZURE_", "GCP_", "OPENAI_", "${{ secrets."):
         assert token not in text

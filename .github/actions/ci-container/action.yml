@@ -1,0 +1,37 @@
+name: CI container
+description: Compose validation, image build, non-root health check and Trivy scan.
+
+runs:
+  using: composite
+  steps:
+    - name: Validate Docker Compose configuration
+      shell: bash
+      run: docker compose config -q
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@b5ca514318bd6ebac0fb2aedd5d36ec1b5c232a2 # v3.10.0
+
+    - name: Build image
+      uses: docker/build-push-action@471d1dc4e07e5cdedd4c2171150001c434f0b7a4 # v6.15.0
+      with:
+        context: .
+        load: true
+        tags: cargo-risk-ml-lab:ci
+
+    - name: Inspect non-root user
+      shell: bash
+      run: |
+        user=$(docker image inspect cargo-risk-ml-lab:ci --format '{{.Config.User}}')
+        test "$user" = "appuser"
+
+    - name: Run container health check
+      shell: bash
+      run: bash scripts/ci/docker_health.sh
+
+    - name: Scan image (HIGH/CRITICAL)
+      uses: aquasecurity/trivy-action@57a97c7e7821a5776cebc9bb87c984fa69cba8f1 # 0.35.0 (post 2026-03 incident; do not use older tags)
+      with:
+        image-ref: cargo-risk-ml-lab:ci
+        severity: HIGH,CRITICAL
+        exit-code: "1"
+        ignore-unfixed: true

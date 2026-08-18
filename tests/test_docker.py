@@ -47,9 +47,8 @@ def test_compose_services_and_network() -> None:
 
 
 def test_ci_container_health_check_exposes_mlflow_paths() -> None:
-    text = (PROJECT_ROOT / ".github" / "workflows" / "ci.yml").read_text(encoding="utf-8")
-    api = text.split("Start API with CI artifacts", 1)[1].split("- name:", 1)[0]
-    docker = text.split("Run container health check", 1)[1].split("- name:", 1)[0]
+    api = (PROJECT_ROOT / "scripts" / "ci" / "smoke_api.sh").read_text(encoding="utf-8")
+    docker = (PROJECT_ROOT / "scripts" / "ci" / "docker_health.sh").read_text(encoding="utf-8")
     assert "uvicorn_pid" in api
     assert "trap cleanup EXIT" in api
     assert '-v "$PWD:$PWD"' in docker
