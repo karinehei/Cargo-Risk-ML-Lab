@@ -17,6 +17,8 @@ runs:
         context: .
         load: true
         tags: cargo-risk-ml-lab:ci
+        provenance: false
+        sbom: false
 
     - name: Inspect non-root user
       shell: bash
@@ -28,10 +30,16 @@ runs:
       shell: bash
       run: bash scripts/ci/docker_health.sh
 
+    - name: Export image archive
+      shell: bash
+      run: docker save cargo-risk-ml-lab:ci -o "${{ runner.temp }}/cargo-risk-ml-lab.tar"
+
     - name: Scan image (HIGH/CRITICAL)
       uses: aquasecurity/trivy-action@57a97c7e7821a5776cebc9bb87c984fa69cba8f1 # 0.35.0 (post 2026-03 incident; do not use older tags)
       with:
-        image-ref: cargo-risk-ml-lab:ci
+        input: ${{ runner.temp }}/cargo-risk-ml-lab.tar
         severity: HIGH,CRITICAL
         exit-code: "1"
         ignore-unfixed: true
+      env:
+        TMPDIR: ${{ runner.temp }}

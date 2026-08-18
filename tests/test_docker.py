@@ -46,6 +46,16 @@ def test_compose_services_and_network() -> None:
     assert any(item.startswith("./configs:") and item.endswith(":ro") for item in api_volumes)
 
 
+def test_ci_trivy_scans_exported_archive() -> None:
+    text = (PROJECT_ROOT / ".github" / "actions" / "ci-container" / "action.yml").read_text(
+        encoding="utf-8"
+    )
+    assert "provenance: false" in text
+    assert "docker save cargo-risk-ml-lab:ci" in text
+    assert "input:" in text
+    assert "image-ref:" not in text
+
+
 def test_ci_container_health_check_exposes_mlflow_paths() -> None:
     api = (PROJECT_ROOT / "scripts" / "ci" / "smoke_api.sh").read_text(encoding="utf-8")
     docker = (PROJECT_ROOT / "scripts" / "ci" / "docker_health.sh").read_text(encoding="utf-8")
