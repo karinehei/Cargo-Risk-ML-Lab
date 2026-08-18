@@ -1,6 +1,6 @@
 # Cargo Risk ML Lab
 
-Educational machine learning portfolio project for **synthetic** cargo shipment review scoring.
+Educational machine learning portfolio by **Karine Heinonen** for **synthetic** cargo shipment review scoring.
 
 > **Disclaimer:** All data, labels and review logic in this repository are fully synthetic and exist only for educational demonstration. This project does **not** represent the Finnish Customs Service, any other customs authority, real border processes, or operational risk-assessment systems. The output is a **review score** (ranking/threshold value), not a calibrated probability.
 
@@ -104,4 +104,4 @@ Serialized MLflow models use **cloudpickle** and are executable Python. Load the
 
 ## License
 
-MIT. Copyright is recorded in `LICENSE` as Cargo Risk ML Lab.
+MIT. Copyright (c) 2026 Karine Heinonen. See `LICENSE`.

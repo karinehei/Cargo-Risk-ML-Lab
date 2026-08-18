@@ -9,7 +9,7 @@ description = "Educational synthetic cargo risk ML portfolio project (not affili
 readme = "README.md"
 requires-python = ">=3.12"
 license = { text = "MIT" }
-authors = [{ name = "Cargo Risk ML Lab" }]
+authors = [{ name = "Karine Heinonen" }]
 dependencies = [
     "pandas>=2.2",
     "numpy>=1.26",
