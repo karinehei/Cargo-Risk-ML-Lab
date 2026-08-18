@@ -20,9 +20,21 @@ def _lock_version(lock: str, name: str) -> tuple[int, ...]:
 
 def test_runtime_lock_clears_known_trivy_highs() -> None:
     text = (PROJECT_ROOT / "requirements" / "runtime.lock.txt").read_text(encoding="utf-8")
-    assert _lock_version(text, "cryptography") >= (50, 0, 0)
+    assert _lock_version(text, "mlflow") >= (3, 15, 0)
+    assert _lock_version(text, "pyarrow") >= (23, 0, 1)
     assert _lock_version(text, "msgpack") >= (1, 2, 1)
     assert _lock_version(text, "setuptools") >= (78, 1, 1)
+
+
+def test_trivyignore_documents_mlflow_cryptography_cap() -> None:
+    text = (PROJECT_ROOT / ".trivyignore").read_text(encoding="utf-8")
+    assert "CVE-2026-69247" in text
+    action = (PROJECT_ROOT / ".github" / "actions" / "ci-container" / "action.yml").read_text(
+        encoding="utf-8"
+    )
+    assert "trivyignores: .trivyignore" in action
+    assert "ignore-unfixed: true" in action
+    assert "scanners: vuln" in action
 
 
 def test_dockerfile_runtime_constraints() -> None:
@@ -69,6 +81,7 @@ def test_ci_trivy_scans_exported_archive() -> None:
     )
     assert "provenance: false" in text
     assert "docker save cargo-risk-ml-lab:ci" in text
+    assert "ignore-unfixed: true" in text
     assert "input:" in text
     assert "image-ref:" not in text
 

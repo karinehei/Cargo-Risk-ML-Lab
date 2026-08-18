@@ -40,7 +40,9 @@ uv pip compile pyproject.toml --python 3.12 --extra dev --extra security --gener
 
 ## Known advisories retained
 
-None on the current lock. `cryptography>=50.0.0`, `msgpack>=1.2.1` and `setuptools>=78.1.1` are direct floors so the runtime image clears the Trivy HIGH findings CVE-2026-69247, GHSA-6v7p-g79w-8964 and CVE-2025-47273.
+MLflow 3.15.x requires `cryptography<50`, so the lock stays on `cryptography==49.0.0`. CVE-2026-69247 (fixed in 50.0.0) is listed in `.trivyignore` until MLflow allows cryptography 50. This project does not decrypt attacker-supplied PKCS#7 EnvelopedData.
+
+Runtime floors for the image scan: `mlflow>=3.15.0`, `pyarrow>=23.0.1`, `msgpack>=1.2.1`, `setuptools>=78.1.1`.
 
 ## Serialization
 

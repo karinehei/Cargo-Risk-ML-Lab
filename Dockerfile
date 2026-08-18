@@ -40,8 +40,10 @@ WORKDIR /app
 # hadolint ignore=DL3008 -- runtime image needs libgomp for XGBoost; no pinned Debian patch versions
 RUN apt-get update \
     && apt-get install -y --no-install-recommends libgomp1 \
+    && apt-get install -y --no-install-recommends --only-upgrade util-linux \
     && rm -rf /var/lib/apt/lists/* \
     && python -m pip uninstall -y setuptools wheel \
+    && rm -rf /usr/local/lib/python3.12/ensurepip \
     && useradd --create-home --uid 1000 --shell /usr/sbin/nologin appuser
 
 COPY --from=builder /opt/venv /opt/venv

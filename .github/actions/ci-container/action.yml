@@ -38,8 +38,11 @@ runs:
       uses: aquasecurity/trivy-action@57a97c7e7821a5776cebc9bb87c984fa69cba8f1 # 0.35.0 (post 2026-03 incident; do not use older tags)
       with:
         input: ${{ runner.temp }}/cargo-risk-ml-lab.tar
+        scanners: vuln
         severity: HIGH,CRITICAL
         exit-code: "1"
         ignore-unfixed: true
+        trivyignores: .trivyignore
+        timeout: "10m0s"
       env:
         TMPDIR: ${{ runner.temp }}

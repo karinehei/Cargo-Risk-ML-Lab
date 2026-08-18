@@ -1,0 +1,4 @@
+# MLflow 3.15.x still requires cryptography<50. CVE-2026-69247 is fixed in
+# cryptography 50.0.0. This project does not decrypt attacker-supplied PKCS#7
+# EnvelopedData. Remove when MLflow allows cryptography>=50.
+CVE-2026-69247
