@@ -44,6 +44,9 @@ def test_dockerfile_runtime_constraints() -> None:
     assert "libgomp1" in text
     assert "mkdir -p /app/mlruns" in text
     assert "chown -R appuser:appuser /app" in text
+    assert "ensurepip" in text
+    assert "setuptools-70*" in text
+    assert "msgpack-1.1*" in text
     assert '".[dev]"' not in text
     assert "[dev]" not in text
     assert "COPY data" not in text

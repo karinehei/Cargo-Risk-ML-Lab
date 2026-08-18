@@ -21,8 +21,10 @@ COPY scripts ./scripts
 
 RUN python -m venv /opt/venv \
     && /opt/venv/bin/pip install --upgrade pip \
+    && /opt/venv/bin/pip uninstall -y setuptools wheel \
     && /opt/venv/bin/pip install --require-hashes --no-cache-dir -r requirements/runtime.lock.txt \
-    && /opt/venv/bin/pip install --no-deps --no-cache-dir .
+    && /opt/venv/bin/pip install --no-deps --no-cache-dir . \
+    && rm -rf /opt/venv/lib/python3.12/ensurepip
 
 FROM python:3.12-slim AS runtime
 
@@ -53,8 +55,18 @@ COPY --chown=appuser:appuser configs ./configs
 COPY --chown=appuser:appuser docs ./docs
 COPY --chown=appuser:appuser pyproject.toml README.md ./
 
-RUN mkdir -p /app/mlruns /app/.cache /home/appuser/.cache \
-    && chown -R appuser:appuser /app /home/appuser
+# python -m venv seeds setuptools 70.x via ensurepip; the hashed lock installs 84.x.
+# Trivy still reports the leftover dist-info / bundled wheels unless they are removed.
+# Official CPython images also ship SPDX SBOMs that list those seed versions.
+RUN rm -rf /opt/venv/lib/python3.12/ensurepip /usr/local/lib/python3.12/ensurepip \
+    && find /opt/venv /usr/local -depth \( \
+         -name 'setuptools-70*' -o \
+         -name 'msgpack-1.1*' -o \
+         -name '*.spdx.json' -o \
+         -name '*sbom*.json' \
+       \) -exec rm -rf {} + \
+    && mkdir -p /app/mlruns /app/.cache /home/appuser/.cache \
+    && chown -R appuser:appuser /app /home/appuser /opt/venv
 
 USER appuser
 
