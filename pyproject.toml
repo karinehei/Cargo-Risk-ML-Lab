@@ -42,6 +42,16 @@ dev = [
     "types-PyYAML>=6.0",
     "types-requests>=2.32",
 ]
+security = [
+    "bandit>=1.7",
+    "pip-audit>=2.7",
+    "detect-secrets>=1.5",
+    "cyclonedx-bom>=5.0",
+    "pip-licenses>=5.0",
+]
+lock = [
+    "pip-tools>=7.4",
+]
 
 [project.scripts]
 cargo-generate-data = "scripts.generate_data:main"
@@ -95,3 +105,18 @@ filterwarnings = [
 [tool.coverage.run]
 source = ["src"]
 branch = true
+omit = [
+    "src/**/__pycache__/*",
+]
+
+[tool.coverage.report]
+# Initial floor from the first measured suite (~70% line+branch on src/).
+# Prevents material regression without claiming 90%+ coverage.
+fail_under = 68
+show_missing = true
+skip_empty = true
+exclude_lines = [
+    "pragma: no cover",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+]

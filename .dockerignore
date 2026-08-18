@@ -27,3 +27,7 @@ tests
 Thumbs.db
 agent-transcripts
 .cursor
+.ci-work
+*.sqlite
+*.db
+requirements/dev.lock.txt

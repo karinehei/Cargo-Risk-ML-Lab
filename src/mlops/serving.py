@@ -11,6 +11,11 @@ from sklearn.base import BaseEstimator
 
 from src.config import get_config, get_settings, resolve_path, setup_logging
 from src.explainability.semantics import SCORE_WARNING, score_metadata_from_champion
+from src.mlops.integrity import (
+    ArtifactIntegrityError,
+    validate_artifact_uri,
+    verify_champion_integrity,
+)
 from src.mlops.serialization import load_sklearn_pipeline
 from src.mlops.tracking import configure_tracking
 
@@ -73,19 +78,27 @@ def load_champion(champion_path: str | None = None) -> ServingBundle:
         raise ChampionLoadError("Champion threshold is inconsistent.")
 
     run_id = str(metadata["mlflow_run_id"])
-    uri = str(metadata["artifact_uri"])
-    if uri.startswith("file:") or ":\\" in uri or uri.startswith("/"):
-        raise ChampionLoadError("Champion artifact URI is unsupported.")
-    if uri.startswith("runs:/") and run_id not in uri:
-        raise ChampionLoadError("Champion artifact URI does not match the recorded run.")
-    if not (uri.startswith("runs:/") or uri.startswith("models:/")):
-        raise ChampionLoadError("Champion artifact URI is unsupported.")
+    try:
+        uri = validate_artifact_uri(str(metadata["artifact_uri"]), run_id)
+        metadata["artifact_uri"] = uri
+        verify_champion_integrity(metadata)
+    except ArtifactIntegrityError as exc:
+        logger.warning("Champion integrity check failed: %s", type(exc).__name__)
+        detail = str(exc).lower()
+        if "checksum" in detail:
+            raise ChampionLoadError("Champion artifact checksum mismatch.") from exc
+        if "does not match" in detail:
+            raise ChampionLoadError("Champion artifact URI does not match the recorded run.") from exc
+        raise ChampionLoadError("Champion artifact URI is unsupported.") from exc
 
     try:
         configure_tracking()
         pipeline = load_sklearn_pipeline(uri)
     except ChampionLoadError:
         raise
+    except ArtifactIntegrityError as exc:
+        logger.warning("Champion artifact load failed: %s", type(exc).__name__)
+        raise ChampionLoadError("Champion model artifact could not be loaded.") from exc
     except Exception as exc:  # noqa: BLE001
         logger.warning("Champion artifact load failed: %s", type(exc).__name__)
         raise ChampionLoadError("Champion model artifact could not be loaded.") from exc

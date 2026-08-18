@@ -1,5 +1,5 @@
-# Cargo Risk ML Lab – default configuration
-# All settings apply to SYNTHETIC educational data only.
+# Cargo Risk ML Lab – CI smoke configuration
+# Architecture/reproducibility check only. Metrics here are NOT frozen-v1.
 
 project:
   name: cargo-risk-ml-lab
@@ -12,7 +12,7 @@ project:
 random_seed: 42
 
 data:
-  n_samples: 15000
+  n_samples: 800
   split_strategy: stratified
   test_size: 0.2
   val_size: 0.1
@@ -26,9 +26,9 @@ data:
   train_periods: [0, 1]
   val_periods: [2]
   test_periods: [3]
-  raw_path: data/raw/synthetic_shipments.csv
-  processed_dir: data/processed
-  validation_report_path: data/raw/validation_report.json
+  raw_path: .ci-work/data/raw/synthetic_shipments.csv
+  processed_dir: .ci-work/data/processed
+  validation_report_path: .ci-work/data/raw/validation_report.json
   target_column: requires_review
   id_column: shipment_id
   period_column: generation_period
@@ -64,64 +64,47 @@ features:
     - is_off_hours
 
 model:
-  algorithm: xgboost
+  algorithm: logreg
   class_weight: balanced
   threshold: 0.5
 
 training:
-  cv_folds: 3
+  cv_folds: 2
   cv_scoring: average_precision
   selection_metric: pr_auc
-  search_enabled: true
+  search_enabled: false
+  calibration_enabled: false
   n_jobs: 1
-  latency_repeats: 200
+  latency_repeats: 20
   threshold:
     objective: fbeta
     beta: 2.0
     min_precision: 0.20
-    grid_size: 37
+    grid_size: 17
   candidates:
-    - dummy
     - logreg
-    - random_forest
-    - xgboost
   search_grids:
     dummy: {}
-    logreg:
-      model__C: [0.25, 1.0, 4.0]
-    random_forest:
-      model__n_estimators: [80, 120]
-      model__max_depth: [6, 12]
-    xgboost:
-      model__n_estimators: [80, 120]
-      model__max_depth: [3, 5]
-      model__learning_rate: [0.05, 0.1]
-  mlflow_experiment: cargo-risk-ml-lab
-  artifact_dir: artifacts
+    logreg: {}
+  mlflow_experiment: cargo-risk-ml-lab-ci
+  artifact_dir: .ci-work/artifacts
 
 mlops:
-  experiment_name: cargo-risk-ml-lab
-  champion_path: artifacts/mlops/champion.json
+  experiment_name: cargo-risk-ml-lab-ci
+  champion_path: .ci-work/artifacts/mlops/champion.json
   sklearn_serialization_format: cloudpickle
-  artifact_dir: artifacts/mlops
+  artifact_dir: .ci-work/artifacts/mlops
   roundtrip_rtol: 1.0e-7
   roundtrip_atol: 1.0e-10
   champion_policy:
     version: "1.0.0"
-    min_validation_recall: 0.40
-    min_validation_pr_auc: 0.15
+    min_validation_recall: 0.15
+    min_validation_pr_auc: 0.05
     pr_auc_indifference: 0.005
-    max_latency_p99_ms: 100.0
+    max_latency_p99_ms: 200.0
     require_roundtrip: true
     simplicity_order:
-      - dummy
       - logreg
-      - logreg_uncalibrated_weighted
-      - logreg_unweighted
-      - logreg_sigmoid
-      - logreg_isotonic
-      - random_forest
-      - xgboost
 
 evaluation:
   metrics:
@@ -132,42 +115,34 @@ evaluation:
     - recall
     - accuracy
     - brier_score
-  plots_dir: artifacts/plots
+  plots_dir: .ci-work/artifacts/plots
 
 explainability:
-  max_samples: 200
-  top_features: 15
-  output_dir: artifacts/explanations
-  permutation_repeats: 10
-  subgroup_min_n: 50
-  local_example_rows: 3
+  max_samples: 40
+  top_features: 8
+  output_dir: .ci-work/artifacts/explanations
+  permutation_repeats: 2
+  subgroup_min_n: 15
+  local_example_rows: 1
   reconstruction_atol: 1.0e-8
 
-# Operational monitoring policy. Effect-size thresholds are not p-value cutoffs
-# and were not tuned on demonstration moderate/major scenarios. Policy 1.1.0
-# keeps PSI/KS/SMD/JS/TV/missingness cutoffs from v1.0.0, aggregates isolated
-# vs coordinated drift, and raises predicted-review-rate warning from 0.03 to
-# 0.05 after null Monte Carlo (n=150, n_ref=5000, n_cur=1200) showed 0.03 at
-# the sampling p95 (p95≈0.029, p99≈0.034, max≈0.042). Critical remains 0.08.
-# Raw monitoring CSVs under data/monitoring/ are local-only; recreate with
-# `make monitoring-reference` / `make monitoring-scenario`.
 monitoring:
   policy_version: "1.1.0"
   min_warning_features: 2
-  null_replications: 150
+  null_replications: 2
   null_seed_base: 92001
   drift_threshold: 0.15
   psi_bins: 10
   min_batch_size: 50
-  scenario_batch_size: 1200
+  scenario_batch_size: 80
   reference_seed: 42
-  reference_sample_size: 5000
-  reference_dataset_path: data/processed/train.csv
-  reference_sample_path: data/monitoring/reference_sample.csv
-  reference_profile_path: artifacts/monitoring/reference_profile.json
-  scenario_dir: data/monitoring
-  report_dir: artifacts/monitoring
-  mlflow_experiment: cargo-risk-monitoring
+  reference_sample_size: 200
+  reference_dataset_path: .ci-work/data/processed/train.csv
+  reference_sample_path: .ci-work/data/monitoring/reference_sample.csv
+  reference_profile_path: .ci-work/artifacts/monitoring/reference_profile.json
+  scenario_dir: .ci-work/data/monitoring
+  report_dir: .ci-work/artifacts/monitoring
+  mlflow_experiment: cargo-risk-monitoring-ci
   severity_thresholds:
     psi_warning: 0.10
     psi_critical: 0.25
@@ -190,9 +165,9 @@ monitoring:
   legacy_prediction_threshold: 0.525
 
 api:
-  model_path: artifacts/model.joblib
-  pipeline_path: artifacts/preprocess_pipeline.joblib
-  metadata_path: artifacts/model_metadata.json
+  model_path: .ci-work/artifacts/model.joblib
+  pipeline_path: .ci-work/artifacts/preprocess_pipeline.joblib
+  metadata_path: .ci-work/artifacts/model_metadata.json
   title: Cargo Risk ML Lab API
   version: "0.1.0"
   max_batch_size: 100

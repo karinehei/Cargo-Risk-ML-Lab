@@ -1,10 +1,11 @@
-.PHONY: help install install-dev format lint typecheck test check \
+.PHONY: help install install-dev install-locked format lint typecheck test check \
 	generate-data validate-data train evaluate audit explain \
 	mlflow-init mlflow-ui mlflow-list mlflow-verify experiments select-champion champion-show \
 	serve-api serve-app docker-up docker-down docker-config docker-build \
 	api-health api-ready \
 	monitoring-reference monitoring-scenario monitoring-run monitoring-labelled monitoring-status monitoring-all \
 	monitoring-null-audit monitoring-validation \
+	bootstrap-demo bootstrap-ci bandit pip-audit secrets-scan sbom repo-audit \
 	clean
 
 PYTHON ?= python
@@ -12,8 +13,14 @@ PIP ?= pip
 
 help:
 	@echo "Cargo Risk ML Lab – common targets"
-	@echo "  install            Install package and runtime dependencies"
-	@echo "  install-dev        Install package with dev dependencies"
+	@echo "  install-locked     Install from hashed lock files, then the local package"
+	@echo "  bootstrap-demo     Isolated full clean-clone bootstrap (no frozen test eval)"
+	@echo "  bootstrap-ci       Lightweight architecture smoke under .ci-work/"
+	@echo "  bandit             Python security linter (src, app, scripts)"
+	@echo "  pip-audit          Known-vulnerability scan of the lock file"
+	@echo "  secrets-scan       detect-secrets baseline comparison"
+	@echo "  sbom               CycloneDX SBOM from the current environment"
+	@echo "  repo-audit         Filesystem repository-boundary checks"
 	@echo "  format             Format code with Ruff"
 	@echo "  lint               Lint with Ruff"
 	@echo "  typecheck          Run mypy"
@@ -53,7 +60,11 @@ install:
 	$(PIP) install -e .
 
 install-dev:
-	$(PIP) install -e ".[dev]"
+	$(PIP) install -e ".[dev,security]"
+
+install-locked:
+	$(PIP) install --require-hashes -r requirements/dev.lock.txt
+	$(PIP) install --no-deps -e .
 
 format:
 	ruff format src app scripts tests
@@ -66,7 +77,28 @@ typecheck:
 	mypy src app
 
 test:
-	pytest
+	pytest --cov=src --cov-report=term-missing
+
+bootstrap-demo:
+	$(PYTHON) -m scripts.bootstrap_demo --mode full
+
+bootstrap-ci:
+	$(PYTHON) -m scripts.bootstrap_demo --mode ci
+
+bandit:
+	bandit -c bandit.yaml -r src app scripts
+
+pip-audit:
+	pip-audit -r requirements/dev.lock.txt
+
+secrets-scan:
+	detect-secrets scan --baseline .secrets.baseline --exclude-files '\.ci-work/.*|mlruns/.*|artifacts/.*|.*\.lock\.txt|sbom.*'
+
+sbom:
+	cyclonedx-py environment -o sbom.cdx.json --pyproject pyproject.toml
+
+repo-audit:
+	$(PYTHON) -m scripts.audit_repository_boundary
 
 check: format lint typecheck test
 

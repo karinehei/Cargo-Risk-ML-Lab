@@ -1,0 +1,17 @@
+# Bandit configuration for Cargo Risk ML Lab.
+# Scan source, app and scripts only. Tests use asserts by design.
+
+exclude_dirs:
+  - tests
+  - mlruns
+  - mlartifacts
+  - artifacts
+  - data
+  - .venv
+  - .ci-work
+  - .mypy_cache
+  - .ruff_cache
+  - .pytest_cache
+
+# No category-wide skips. Per-line nosec must include a reason.
+skips: []

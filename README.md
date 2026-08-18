@@ -10,13 +10,28 @@ Core modelling, local MLflow tracking, exact linear explanations, FastAPI servin
 
 ## Quick start
 
-### WSL (recommended on Windows)
+A clean clone has no datasets, MLflow database or generated models. Recreate an isolated demonstration (does **not** evaluate the frozen test set and does **not** overwrite portfolio frozen-v1 artifacts):
+
+```bash
+python3.12 -m venv .venv
+source .venv/bin/activate   # Windows: .venv\Scripts\activate
+python -m pip install -U pip
+python -m pip install --require-hashes -r requirements/dev.lock.txt
+python -m pip install --no-deps -e .
+cp .env.example .env
+make bootstrap-demo
+```
+
+`make bootstrap-ci` is a faster architecture smoke test. Its metrics are **not** the published frozen-v1 results.
+
+### Existing local environment (WSL recommended on Windows)
 
 ```bash
 python3 -m venv ~/.venvs/cargo-risk-ml-lab
 source ~/.venvs/cargo-risk-ml-lab/bin/activate
 cd "/mnt/d/Cargo Risk ML Lab"
-pip install -e ".[dev]"
+pip install --require-hashes -r requirements/dev.lock.txt
+pip install --no-deps -e .
 cp .env.example .env
 
 make generate-data
@@ -26,30 +41,16 @@ make experiments    # train/val + calibration + champion; does not touch frozen 
 make mlflow-verify
 # make evaluate     # only for an independently authorised test characterisation
 make explain
+```
 
-# Monitoring (reference = train sample; never uses test.csv)
+Monitoring (reference = train sample; never uses test.csv):
+
+```bash
 make monitoring-reference
 make monitoring-all
 make monitoring-status
 make monitoring-null-audit
 make monitoring-validation
-```
-
-### Native / other platforms
-
-```bash
-python -m venv .venv
-# Windows: .venv\Scripts\activate
-# Unix: source .venv/bin/activate
-pip install -e ".[dev]"
-cp .env.example .env
-
-make generate-data
-make validate-data
-make mlflow-init
-make experiments
-make mlflow-verify
-make explain
 ```
 
 ## Run the local services
@@ -97,8 +98,10 @@ Expected URLs after a successful stack start: API `8000`, Streamlit `8501`, MLfl
 
 ## Project layout
 
-See `docs/architecture.md` for design decisions, `docs/monitoring.md` and `docs/drift_metrics.md` for drift monitoring, `docs/operations.md` for the monitoring workflow, `docs/api.md` for the HTTP contract, `docs/deployment.md` for local and container runtime, `docs/data_dictionary.md` for the synthetic schema, `docs/training.md` for the modelling protocol, `docs/methodological_audit.md` for the train/validation protocol audit, `docs/mlops.md` for local MLflow tracking, and `docs/explainability.md` / `docs/responsible_ai.md` / `docs/limitations.md` for score semantics and responsible-AI notes.
+See `docs/architecture.md` for design decisions, `docs/repository_policy.md` for what may be committed, `docs/dependencies.md` for lock-file updates, `SECURITY.md` for reporting, `docs/monitoring.md` and `docs/drift_metrics.md` for drift monitoring, `docs/operations.md` for the monitoring workflow, `docs/api.md` for the HTTP contract, `docs/deployment.md` for local and container runtime, `docs/data_dictionary.md` for the synthetic schema, `docs/training.md` for the modelling protocol, `docs/methodological_audit.md` for the train/validation protocol audit, `docs/mlops.md` for local MLflow tracking, and `docs/explainability.md` / `docs/responsible_ai.md` / `docs/limitations.md` for score semantics and responsible-AI notes.
+
+Serialized MLflow models use **cloudpickle** and are executable Python. Load them only from the local tracking store after checksum verification when a checksum is recorded. This project is not suitable for operational enforcement or automated adverse decisions.
 
 ## License
 
-MIT
+MIT. Copyright is recorded in `LICENSE` as Cargo Risk ML Lab.

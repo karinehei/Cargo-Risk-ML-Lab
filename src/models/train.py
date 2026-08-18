@@ -105,8 +105,9 @@ def save_model_bundle(bundle: TrainedModelBundle, artifact_dir: str | Path | Non
     steps = bundle.pipeline.named_steps
     if "preprocess" not in steps or "model" not in steps:
         raise ValueError("Saved pipeline must contain both preprocess and model steps")
-    joblib.dump(bundle.pipeline, model_path)
-    joblib.dump(bundle.pipeline.named_steps["preprocess"], pipeline_path)
+    # Recovery exports are not loaded by the API champion path.
+    joblib.dump(bundle.pipeline, model_path)  # nosec B301
+    joblib.dump(bundle.pipeline.named_steps["preprocess"], pipeline_path)  # nosec B301
     serialisable = dict(bundle.metadata)
     with metadata_path.open("w", encoding="utf-8") as handle:
         json.dump(serialisable, handle, indent=2, default=str)

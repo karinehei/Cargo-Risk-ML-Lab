@@ -78,3 +78,5 @@ In real systems, review outcomes arrive after human processing. Until labels exi
 ## Raw CSV handling
 
 Do not commit `data/monitoring/*.csv`. `.gitignore` and `.dockerignore` exclude them. Docker images must not copy `data/`. Rebuild the reference sample from `data/processed/train.csv` when needed.
+
+Do not commit MLflow SQLite files or generated train/validation/test tables. See `docs/repository_policy.md`. Serialized champion artifacts are local and trusted; the API does not download models from arbitrary URIs.

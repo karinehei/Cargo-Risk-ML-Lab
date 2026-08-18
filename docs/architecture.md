@@ -46,7 +46,9 @@ configs/default.yaml
 6. **Sklearn pipeline + MLflow lineage** – Dummy, logistic regression, random forest and XGBoost are compared on validation PR-AUC. Thresholds are chosen on validation (F-beta, beta=2). Fitted pipelines are logged with `mlflow.sklearn` (`cloudpickle`). The test set is scored only in an independently authorised characterisation; frozen v1 is preserved under `artifacts/frozen_v1/`.
 7. **Evidently optional** – if Evidently integrates cleanly it may supplement reports; PSI/KS/JS in `src/monitoring/metrics.py` remain the source of truth. Evidently repair is deferred when APIs are incompatible.
 8. **Monitoring** – train-derived reference profiles, deterministic monitoring scenarios, unlabelled input/score drift by default, optional labelled simulation kept separate. Policy 1.1.0 aggregates isolated vs coordinated drift. Raw monitoring CSVs are gitignored. Never uses the frozen test set or triggers automatic retraining.
-9. **No fabricated metrics in docs** – evaluation numbers are produced only by running the pipeline.
+9. **Trusted local artifacts** – serving loads `runs:/` or `models:/` URIs only. Request bodies cannot set the model path, MLflow URI, config path or reload target. Cloudpickle payloads are treated as executable.
+10. **Clean-clone bootstrap** – `make bootstrap-demo` writes an isolated tree under `artifacts/bootstrap/`. `make bootstrap-ci` uses `.ci-work/` and must not be reported as frozen-v1.
+11. **No fabricated metrics in docs** – evaluation numbers are produced only by running the pipeline.
 
 ## Serving
 

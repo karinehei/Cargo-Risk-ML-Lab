@@ -69,7 +69,9 @@ def main() -> None:
     x_train, y_train = prepare_xy(train_df, cfg, fit_derived_reference=train_df)
     x_val, y_val = prepare_xy(val_df, cfg, fit_derived_reference=train_df)
     fixture = x_val.head(min(16, len(x_val)))
-    out_dir = resolve_path("artifacts/mlops")
+    out_dir = resolve_path(
+        str(cfg.mlops.get("artifact_dir") or cfg.training.get("artifact_dir") or "artifacts/mlops")
+    )
     out_dir.mkdir(parents=True, exist_ok=True)
 
     comparison = compare_models(train_df, val_df, config=cfg)
@@ -112,87 +114,89 @@ def main() -> None:
         )
         records.append(record)
 
-    logger.info("Fitting calibration candidates on training data only")
-    logreg_base = next(
-        (item.pipeline for item in comparison.candidates if item.name == "logreg"), None
-    )
-    calibrated = fit_calibration_candidates(
-        x_train, y_train, x_val, y_val, cfg, base_logreg=logreg_base
-    )
+    calibrated: list[Any] = []
     cal_rows: list[dict[str, Any]] = []
-    plots_dir = out_dir / "calibration_plots"
-    for candidate in calibrated:
-        y_prob = predict_proba(candidate.pipeline, x_val)
-        save_evaluation_plots(
-            y_val,
-            y_prob,
-            plots_dir,
-            threshold=candidate.selected_threshold,
-            prefix=candidate.name,
+    if bool(cfg.training.get("calibration_enabled", True)):
+        logger.info("Fitting calibration candidates on training data only")
+        logreg_base = next(
+            (item.pipeline for item in comparison.candidates if item.name == "logreg"), None
         )
-        record = log_candidate_run(
-            run_name=f"calibrate_{candidate.name}",
-            model_family=candidate.name,
-            pipeline=candidate.pipeline,
-            hyperparameters=candidate.hyperparameters,
-            val_metrics=candidate.val_metrics_at_selected_threshold,
-            x_val=x_val,
-            train_df=train_df,
-            val_df=val_df,
-            split_manifest_path=split_manifest,
-            threshold=candidate.selected_threshold,
-            threshold_policy=candidate.threshold_policy,
-            cv_mean=None,
-            cv_std=None,
-            class_weight=candidate.class_weight,
-            calibration_status=candidate.calibration_status,
-            preprocess_config=_preprocess_config("logreg"),
-            extra_tags={"stage": "calibration"},
-            extra_metrics={
-                "val_pr_auc_frozen_threshold": float(
-                    candidate.val_metrics_at_frozen_threshold["pr_auc"]
-                ),
-                "val_brier_frozen_threshold": float(
-                    candidate.val_metrics_at_frozen_threshold["brier_score"]
-                ),
-                "val_recall_frozen_threshold": float(
-                    candidate.val_metrics_at_frozen_threshold["recall"]
-                ),
-                "val_precision_frozen_threshold": float(
-                    candidate.val_metrics_at_frozen_threshold["precision"]
-                ),
-                "frozen_operating_threshold": float(FROZEN_OPERATING_THRESHOLD),
-            },
-            artifact_files=list(plots_dir.glob(f"{candidate.name}_*")),
-            fixture=fixture,
-            config=cfg,
+        calibrated = fit_calibration_candidates(
+            x_train, y_train, x_val, y_val, cfg, base_logreg=logreg_base
         )
-        records.append(record)
-        cal_rows.append(
-            {
-                "name": candidate.name,
-                "calibration_status": candidate.calibration_status,
-                "val_pr_auc": candidate.val_metrics_at_selected_threshold["pr_auc"],
-                "val_brier": candidate.val_metrics_at_selected_threshold["brier_score"],
-                "val_ece": candidate.val_metrics_at_selected_threshold["ece"],
-                "val_precision_selected_t": candidate.val_metrics_at_selected_threshold[
-                    "precision"
-                ],
-                "val_recall_selected_t": candidate.val_metrics_at_selected_threshold["recall"],
-                "selected_threshold": candidate.selected_threshold,
-                "val_precision_frozen_t": candidate.val_metrics_at_frozen_threshold["precision"],
-                "val_recall_frozen_t": candidate.val_metrics_at_frozen_threshold["recall"],
-                "frozen_threshold": FROZEN_OPERATING_THRESHOLD,
-                "run_id": record["run_id"],
-            }
-        )
+        plots_dir = out_dir / "calibration_plots"
+        for candidate in calibrated:
+            y_prob = predict_proba(candidate.pipeline, x_val)
+            save_evaluation_plots(
+                y_val,
+                y_prob,
+                plots_dir,
+                threshold=candidate.selected_threshold,
+                prefix=candidate.name,
+            )
+            record = log_candidate_run(
+                run_name=f"calibrate_{candidate.name}",
+                model_family=candidate.name,
+                pipeline=candidate.pipeline,
+                hyperparameters=candidate.hyperparameters,
+                val_metrics=candidate.val_metrics_at_selected_threshold,
+                x_val=x_val,
+                train_df=train_df,
+                val_df=val_df,
+                split_manifest_path=split_manifest,
+                threshold=candidate.selected_threshold,
+                threshold_policy=candidate.threshold_policy,
+                cv_mean=None,
+                cv_std=None,
+                class_weight=candidate.class_weight,
+                calibration_status=candidate.calibration_status,
+                preprocess_config=_preprocess_config("logreg"),
+                extra_tags={"stage": "calibration"},
+                extra_metrics={
+                    "val_pr_auc_frozen_threshold": float(
+                        candidate.val_metrics_at_frozen_threshold["pr_auc"]
+                    ),
+                    "val_brier_frozen_threshold": float(
+                        candidate.val_metrics_at_frozen_threshold["brier_score"]
+                    ),
+                    "val_recall_frozen_threshold": float(
+                        candidate.val_metrics_at_frozen_threshold["recall"]
+                    ),
+                    "val_precision_frozen_threshold": float(
+                        candidate.val_metrics_at_frozen_threshold["precision"]
+                    ),
+                    "frozen_operating_threshold": float(FROZEN_OPERATING_THRESHOLD),
+                },
+                artifact_files=list(plots_dir.glob(f"{candidate.name}_*")),
+                fixture=fixture,
+                config=cfg,
+            )
+            records.append(record)
+            cal_rows.append(
+                {
+                    "name": candidate.name,
+                    "calibration_status": candidate.calibration_status,
+                    "val_pr_auc": candidate.val_metrics_at_selected_threshold["pr_auc"],
+                    "val_brier": candidate.val_metrics_at_selected_threshold["brier_score"],
+                    "val_ece": candidate.val_metrics_at_selected_threshold["ece"],
+                    "val_precision_selected_t": candidate.val_metrics_at_selected_threshold[
+                        "precision"
+                    ],
+                    "val_recall_selected_t": candidate.val_metrics_at_selected_threshold["recall"],
+                    "selected_threshold": candidate.selected_threshold,
+                    "val_precision_frozen_t": candidate.val_metrics_at_frozen_threshold["precision"],
+                    "val_recall_frozen_t": candidate.val_metrics_at_frozen_threshold["recall"],
+                    "frozen_threshold": FROZEN_OPERATING_THRESHOLD,
+                    "run_id": record["run_id"],
+                }
+            )
 
     pd.DataFrame(cal_rows).to_csv(out_dir / "calibration_comparison.csv", index=False)
     (out_dir / "calibration_comparison.json").write_text(
         json.dumps(cal_rows, indent=2), encoding="utf-8"
     )
 
-    champion = select_champion(records, cfg, calibrated_in_pool=True)
+    champion = select_champion(records, cfg, calibrated_in_pool=bool(calibrated))
     save_champion(champion, out_dir / "champion.json")
     (out_dir / "experiment_records.json").write_text(
         json.dumps(records, indent=2, default=str), encoding="utf-8"
@@ -215,7 +219,7 @@ def main() -> None:
     else:
         import joblib
 
-        joblib.dump(winner_pipeline, export_dir / "model.joblib")
+        joblib.dump(winner_pipeline, export_dir / "model.joblib")  # nosec B301
         (export_dir / "model_metadata.json").write_text(
             json.dumps(
                 {**champion.to_dict(), "joblib_role": "recovery_export_not_primary"},

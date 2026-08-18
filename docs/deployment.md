@@ -11,7 +11,13 @@ Expected URLs after a **successful** local startup (do not treat this list as a 
 
 ## Prepare artifacts
 
-The images do not bake datasets, MLflow runs or secrets. Mount local `mlruns/` and `artifacts/` at runtime.
+A clean clone should use `make bootstrap-demo` (isolated under `artifacts/bootstrap/`) or the existing local MLflow store. Images still do not bake datasets, MLflow runs or secrets.
+
+The API never accepts a model URI, filesystem model path, config path or reload target from a request. Reload, when enabled, only re-reads the configured local champion.
+
+Serialized MLflow sklearn artifacts use official `cloudpickle` serialization. Treat them as executable Python: load only from the trusted local store and fail closed on checksum mismatch when `artifact_sha256` is present.
+
+If Docker is unavailable, `tests/test_docker.py` still checks Dockerfile and Compose **configuration**. That is not the same as a runtime-verified stack. Do not claim container success from YAML validation alone.
 
 ```bash
 source ~/.venvs/cargo-risk-ml-lab/bin/activate   # or your venv

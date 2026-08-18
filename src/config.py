@@ -33,7 +33,8 @@ class Settings(BaseSettings):
     data_raw_dir: str = "data/raw"
     data_processed_dir: str = "data/processed"
     artifacts_dir: str = "artifacts"
-    api_host: str = "0.0.0.0"
+    # Bind address for local/Compose serving; not an internet-facing default.
+    api_host: str = "0.0.0.0"  # nosec B104
     api_port: int = 8000
     api_model_path: str = "artifacts/model.joblib"
     api_pipeline_path: str = "artifacts/preprocess_pipeline.joblib"

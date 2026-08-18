@@ -120,7 +120,7 @@ def _log_joblib_fallback(
     tmp_dir = PROJECT_ROOT / "mlruns" / "_tmp_joblib"
     tmp_dir.mkdir(parents=True, exist_ok=True)
     path = tmp_dir / f"{run_id}_{artifact_name}.joblib"
-    joblib.dump(estimator, path)
+    joblib.dump(estimator, path)  # nosec B301
     mlflow.log_artifact(str(path), artifact_path=f"{artifact_name}_joblib")
     mlflow.set_tag("serialization_format", "joblib_fallback")
     mlflow.set_tag("mlflow_sklearn_flavor", "false")
@@ -136,11 +136,20 @@ def _log_joblib_fallback(
 
 
 def load_sklearn_pipeline(artifact_uri: str) -> BaseEstimator:
-    """Load an estimator logged with ``mlflow.sklearn``."""
+    """Load an estimator logged with ``mlflow.sklearn`` from a trusted URI."""
+    from src.mlops.integrity import validate_artifact_uri
+
+    validate_artifact_uri(artifact_uri, run_id=_run_id_from_uri(artifact_uri))
     loaded = mlflow.sklearn.load_model(artifact_uri)
     if not hasattr(loaded, "predict_proba"):
         raise TypeError("Loaded MLflow artifact does not support predict_proba")
     return loaded
+
+
+def _run_id_from_uri(artifact_uri: str) -> str:
+    if artifact_uri.startswith("runs:/"):
+        return artifact_uri.split("/", 2)[1]
+    return ""
 
 
 def assert_prediction_roundtrip(

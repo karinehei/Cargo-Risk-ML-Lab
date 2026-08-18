@@ -74,3 +74,27 @@ logs/
 
 # Docker
 *.tar
+
+# Isolated bootstrap / CI worktrees
+.ci-work/
+artifacts/bootstrap/*
+!artifacts/bootstrap/.gitkeep
+
+# Local databases and MLflow stores
+*.sqlite
+*.db
+mlflow.db
+
+# Security / coverage / SBOM outputs (regenerate in CI)
+bandit-report.json
+bandit-report.txt
+pip-audit.json
+sbom.json
+sbom.cdx.json
+coverage.xml
+junit.xml
+pip-licenses.json
+
+# Editor / agent local state
+.cursor/
+agent-transcripts/
