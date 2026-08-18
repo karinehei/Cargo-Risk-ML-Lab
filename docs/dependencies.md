@@ -34,13 +34,13 @@ uv pip compile pyproject.toml --python 3.12 --extra dev --extra security --gener
 `pip-compile --generate-hashes` from pip-tools is an alternative; hash generation over HTTPS can time out on large wheels.
 
 3. Run `pip-audit -r requirements/dev.lock.txt`.
-4. Do not apply breaking upgrades solely to clear an advisory. Record unreachable or accepted findings in the verification notes.
+4. Re-run the container Trivy step after lock changes. Do not apply breaking upgrades solely to clear an advisory with no patched release.
 
 `nvidia-nccl-cu13` is a transitive Linux extra of XGBoost 3.x. It is not used for training in this demo. Do not treat it as a CUDA runtime requirement.
 
 ## Known advisories retained
 
-`pip-audit` on the 2026-08-17 lock reported `cryptography==49.0.0` / PYSEC-2026-3552 (CVE-2026-69247), fixed in 50.0.0. This project does not decrypt attacker-supplied PKCS#7 EnvelopedData. The finding is transitive (MLflow/Evidently/google-auth). It was **not** auto-upgraded.
+None on the current lock. `cryptography>=50.0.0`, `msgpack>=1.2.1` and `setuptools>=78.1.1` are direct floors so the runtime image clears the Trivy HIGH findings CVE-2026-69247, GHSA-6v7p-g79w-8964 and CVE-2025-47273.
 
 ## Serialization
 

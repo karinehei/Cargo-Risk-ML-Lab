@@ -10,6 +10,21 @@ import yaml
 from src.config import PROJECT_ROOT
 
 
+def _lock_version(lock: str, name: str) -> tuple[int, ...]:
+    for line in lock.splitlines():
+        if line.startswith(f"{name}=="):
+            raw = line.split("==", 1)[1].split()[0]
+            return tuple(int(part) for part in raw.split("."))
+    raise AssertionError(f"{name} is missing from the lock file")
+
+
+def test_runtime_lock_clears_known_trivy_highs() -> None:
+    text = (PROJECT_ROOT / "requirements" / "runtime.lock.txt").read_text(encoding="utf-8")
+    assert _lock_version(text, "cryptography") >= (50, 0, 0)
+    assert _lock_version(text, "msgpack") >= (1, 2, 1)
+    assert _lock_version(text, "setuptools") >= (78, 1, 1)
+
+
 def test_dockerfile_runtime_constraints() -> None:
     text = (PROJECT_ROOT / "Dockerfile").read_text(encoding="utf-8")
     assert "python:3.12-slim" in text

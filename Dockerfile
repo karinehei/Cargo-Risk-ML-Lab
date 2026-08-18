@@ -38,6 +38,7 @@ WORKDIR /app
 RUN apt-get update \
     && apt-get install -y --no-install-recommends libgomp1 \
     && rm -rf /var/lib/apt/lists/* \
+    && python -m pip uninstall -y setuptools wheel \
     && useradd --create-home --uid 1000 --shell /usr/sbin/nologin appuser
 
 COPY --from=builder /opt/venv /opt/venv
