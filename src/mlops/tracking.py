@@ -58,8 +58,10 @@ def configure_tracking(
     sqlite_path = _sqlite_file(uri)
     if sqlite_path is not None:
         sqlite_path.parent.mkdir(parents=True, exist_ok=True)
+        default_artifact_root = sqlite_path.parent
     else:
-        (PROJECT_ROOT / "mlruns").mkdir(parents=True, exist_ok=True)
+        default_artifact_root = PROJECT_ROOT / "mlruns"
+        default_artifact_root.mkdir(parents=True, exist_ok=True)
     mlflow.set_tracking_uri(uri)
     name = experiment or str(
         cfg.mlops.get("experiment_name")
@@ -68,10 +70,8 @@ def configure_tracking(
     )
     existing = mlflow.get_experiment_by_name(name)
     if existing is None:
-        if artifact_location:
-            mlflow.create_experiment(name, artifact_location=str(Path(artifact_location).resolve()))
-        else:
-            mlflow.create_experiment(name)
+        location = artifact_location or str(default_artifact_root)
+        mlflow.create_experiment(name, artifact_location=str(Path(location).resolve()))
     mlflow.set_experiment(name)
     logger.info("MLflow tracking_uri=%s experiment=%s", uri, name)
     return uri

@@ -107,6 +107,26 @@ def test_champion_policy_prefers_eligible_logreg() -> None:
     assert "simple" in chosen.reason or "logistic" in chosen.reason
 
 
+def test_configure_tracking_colocates_artifacts_with_sqlite(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    db_path = tmp_path / "store" / "mlflow.db"
+    uri = "sqlite:///" + db_path.resolve().as_posix()
+    monkeypatch.setenv("MLFLOW_TRACKING_URI", uri)
+    from src.config import get_settings
+
+    get_settings.cache_clear()
+    configure_tracking(tracking_uri=uri, experiment="ci-colocate")
+    experiment = mlflow.get_experiment_by_name("ci-colocate")
+    assert experiment is not None
+    location = str(experiment.artifact_location or "")
+    normalized = location.replace("\\", "/").replace("file:///", "/").replace("file://", "/")
+    assert "store" in normalized
+    assert str(tmp_path.resolve().as_posix()) in normalized.replace(" ", "%20") or (
+        tmp_path.resolve().name in normalized and "store" in normalized
+    )
+
+
 def test_mlflow_sklearn_roundtrip(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     uri = "sqlite:///" + (tmp_path / "ml.db").resolve().as_posix()
     monkeypatch.setenv("MLFLOW_TRACKING_URI", uri)
