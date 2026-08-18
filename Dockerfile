@@ -30,7 +30,10 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PIP_DISABLE_PIP_VERSION_CHECK=1 \
     PATH="/opt/venv/bin:$PATH" \
-    PYTHONPATH=/app
+    PYTHONPATH=/app \
+    HOME=/home/appuser \
+    MPLCONFIGDIR=/home/appuser/.cache/matplotlib \
+    XDG_CACHE_HOME=/home/appuser/.cache
 
 WORKDIR /app
 
@@ -47,6 +50,9 @@ COPY --chown=appuser:appuser app ./app
 COPY --chown=appuser:appuser configs ./configs
 COPY --chown=appuser:appuser docs ./docs
 COPY --chown=appuser:appuser pyproject.toml README.md ./
+
+RUN mkdir -p /app/mlruns /app/.cache /home/appuser/.cache \
+    && chown -R appuser:appuser /app /home/appuser
 
 USER appuser
 

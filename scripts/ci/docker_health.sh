@@ -3,7 +3,7 @@
 set -euo pipefail
 
 chmod -R a+rX .ci-work
-chmod -R a+rwX .ci-work/mlruns
+chmod -R a+rwX .ci-work
 if [ -d mlruns ]; then
   chmod -R a+rX mlruns
   chmod -R a+rwX mlruns
@@ -14,6 +14,8 @@ docker run -d --name cargo-risk-api-ci --user 1000:1000 \
   -e CHAMPION_PATH=.ci-work/artifacts/mlops/champion.json \
   -e MLFLOW_TRACKING_URI=sqlite:///.ci-work/mlruns/mlflow.db \
   -e MLFLOW_EXPERIMENT_NAME=cargo-risk-ml-lab-ci \
+  -e HOME=/home/appuser \
+  -e TMPDIR=/tmp \
   -v "$PWD:$PWD" \
   -v "$PWD/.ci-work:/app/.ci-work" \
   -w /app \

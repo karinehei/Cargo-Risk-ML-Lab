@@ -30,6 +30,8 @@ def test_dockerfile_runtime_constraints() -> None:
     assert "python:3.12-slim" in text
     assert "USER appuser" in text
     assert "libgomp1" in text
+    assert "mkdir -p /app/mlruns" in text
+    assert "chown -R appuser:appuser /app" in text
     assert '".[dev]"' not in text
     assert "[dev]" not in text
     assert "COPY data" not in text
@@ -78,7 +80,7 @@ def test_ci_container_health_check_exposes_mlflow_paths() -> None:
     assert "trap cleanup EXIT" in api
     assert '-v "$PWD:$PWD"' in docker
     assert '-v "$PWD/.ci-work:/app/.ci-work"' in docker
-    assert "chmod -R a+rwX .ci-work/mlruns" in docker
+    assert "chmod -R a+rwX .ci-work" in docker
     assert "trap cleanup EXIT" in docker
     assert "docker logs cargo-risk-api-ci" in docker
 
