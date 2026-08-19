@@ -93,6 +93,10 @@ def test_github_actions_minimum_permissions_and_pinned_shas() -> None:
     assert "evaluate_model" not in text
     assert "uses: ./.github/actions/ci-quality" in workflow_path.read_text(encoding="utf-8")
     assert "uses: ./.github/actions/ci-container" in workflow_path.read_text(encoding="utf-8")
+    quality = (PROJECT_ROOT / ".github" / "actions" / "ci-quality" / "action.yml").read_text(
+        encoding="utf-8"
+    )
+    assert "cache: pip" not in quality
     for path in _github_yaml_files():
         body = path.read_text(encoding="utf-8")
         for match in re.finditer(r"uses:\s+(\S+)", body):

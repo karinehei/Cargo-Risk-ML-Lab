@@ -101,6 +101,7 @@ def test_ci_frees_runner_disk_before_docker_build() -> None:
     assert "GITHUB_ACTIONS" in script
     assert "/usr/local/lib/android" in script
     assert "/opt/hostedtoolcache/Python" in script
+    assert "${HOME}/.cache/pip" in script
     assert "docker image prune" in script
 
 
