@@ -8,6 +8,8 @@ Educational machine learning portfolio by **Karine Heinonen** for **synthetic** 
 
 Core modelling, local MLflow tracking, exact linear explanations, FastAPI serving and a Streamlit demonstration are implemented. Frozen v1 test artefacts are preserved. Documentation does **not** hard-code fabricated live prediction numbers.
 
+Python **3.12** is required. Install from the hashed lock files (`requirements/dev.lock.txt` locally, `requirements/runtime.lock.txt` in the container). GitHub Actions runs lint, tests, a container health check and a HIGH/CRITICAL image scan. Lock-file updates and retained advisories are in `docs/dependencies.md`.
+
 ## Quick start
 
 A clean clone has no datasets, MLflow database or generated models. Recreate an isolated demonstration (does **not** evaluate the frozen test set and does **not** overwrite portfolio frozen-v1 artifacts):
@@ -27,7 +29,7 @@ make bootstrap-demo
 ### Existing local environment (WSL recommended on Windows)
 
 ```bash
-python3 -m venv ~/.venvs/cargo-risk-ml-lab
+python3.12 -m venv ~/.venvs/cargo-risk-ml-lab
 source ~/.venvs/cargo-risk-ml-lab/bin/activate
 cd "/mnt/d/Cargo Risk ML Lab"
 pip install --require-hashes -r requirements/dev.lock.txt
@@ -61,6 +63,8 @@ make serve-app      # Streamlit on http://127.0.0.1:8501
 make mlflow-ui      # MLflow on http://127.0.0.1:5000
 ```
 
+On Windows with WSL, open those URLs in a desktop browser at `127.0.0.1`. Cursor's Simple Browser often cannot reach a server that is bound only inside WSL.
+
 Health and readiness (API process must already be running):
 
 ```bash
@@ -86,7 +90,7 @@ curl -sS http://127.0.0.1:8000/predict/batch \
 
 ## Docker Compose
 
-Prepare artifacts first (`make experiments` and `make explain`). Images do not bake datasets or secrets.
+Prepare artifacts first (`make experiments` and `make explain`). The image is Python 3.12-slim, non-root and CPU-only: it installs the hashed runtime lock and does not include CUDA. Images do not bake datasets or secrets.
 
 ```bash
 make docker-config

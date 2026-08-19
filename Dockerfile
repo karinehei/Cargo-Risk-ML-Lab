@@ -56,15 +56,18 @@ COPY --chown=appuser:appuser configs ./configs
 COPY --chown=appuser:appuser docs ./docs
 COPY --chown=appuser:appuser pyproject.toml README.md ./
 
-# python -m venv seeds setuptools 70.x via ensurepip; the hashed lock installs 84.x.
-# Trivy still reports the leftover dist-info / bundled wheels unless they are removed.
-# Official CPython images also ship SPDX SBOMs that list those seed versions.
+# pip ships pip/_vendor/bom.cdx.json listing its vendored wheels (setuptools 70.x,
+# msgpack 1.1.x). Trivy treats that CycloneDX file as installed Python packages.
+# The hashed lock installs msgpack 1.2.1 and setuptools 84.x; METADATA rows are clean.
+# Also drop ensurepip leftovers and any other SPDX/CycloneDX inventories.
 RUN rm -rf /opt/venv/lib/python3.12/ensurepip /usr/local/lib/python3.12/ensurepip \
     && find /opt/venv /usr/local -depth \( \
          -name 'setuptools-70*' -o \
          -name 'msgpack-1.1*' -o \
          -name '*.spdx.json' -o \
-         -name '*sbom*.json' \
+         -name '*sbom*.json' -o \
+         -name '*.cdx.json' -o \
+         -name 'bom.json' \
        \) -exec rm -rf {} + \
     && mkdir -p /app/mlruns /app/.cache /home/appuser/.cache \
     && chown -R appuser:appuser /app /home/appuser /opt/venv

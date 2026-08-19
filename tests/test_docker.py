@@ -29,6 +29,8 @@ def test_runtime_lock_clears_known_trivy_highs() -> None:
 def test_trivyignore_documents_mlflow_cryptography_cap() -> None:
     text = (PROJECT_ROOT / ".trivyignore").read_text(encoding="utf-8")
     assert "CVE-2026-69247" in text
+    assert "CVE-2025-47273" not in text
+    assert "GHSA-6v7p-g79w-8964" not in text
     action = (PROJECT_ROOT / ".github" / "actions" / "ci-container" / "action.yml").read_text(
         encoding="utf-8"
     )
@@ -48,6 +50,8 @@ def test_dockerfile_runtime_constraints() -> None:
     assert "setuptools-70*" in text
     assert "msgpack-1.1*" in text
     assert "nvidia-nccl-cu13" in text
+    assert "*.cdx.json" in text
+    assert "bom.json" in text
     assert '".[dev]"' not in text
     assert "[dev]" not in text
     assert "COPY data" not in text

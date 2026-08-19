@@ -44,6 +44,8 @@ MLflow 3.15.x requires `cryptography<50`, so the lock stays on `cryptography==49
 
 Runtime floors for the image scan: `mlflow>=3.15.0`, `pyarrow>=23.0.1`, `msgpack>=1.2.1`, `setuptools>=78.1.1`.
 
+Trivy 0.69 also reads `pip/_vendor/bom.cdx.json` (vendored CycloneDX) and reports those wheel versions as if they were installed (`setuptools 70.3.0`, `msgpack 1.1.2`). The runtime image deletes `*.cdx.json` so the scan follows site-packages METADATA instead. Do not ignore GHSA-6v7p-g79w-8964 or CVE-2025-47273 unless those versions are actually importable.
+
 ## Serialization
 
 MLflow sklearn models are logged with official `serialization_format=cloudpickle`. Do not enable global unsafe skops trust settings. Compatibility to retain: MLflow, NumPy, scikit-learn, skops (transitive), XGBoost, SHAP.
