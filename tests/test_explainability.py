@@ -169,6 +169,44 @@ def test_dashboard_uses_review_score_language() -> None:
     assert callable(dashboard.main)
 
 
+def test_experiment_records_frame_drops_duplicate_threshold() -> None:
+    from app.streamlit_app import experiment_records_frame
+
+    frame = experiment_records_frame(
+        [
+            {
+                "model_family": "logreg",
+                "run_id": "abc",
+                "threshold": 0.525,
+                "calibration_status": "none",
+                "validation_metrics": {
+                    "val_pr_auc": 0.22,
+                    "val_recall": 0.5,
+                    "val_precision": 0.2,
+                    "threshold": 0.525,
+                },
+            }
+        ]
+    )
+    assert list(frame.columns).count("threshold") == 1
+    keep = [
+        column
+        for column in (
+            "model_family",
+            "run_id",
+            "val_pr_auc",
+            "val_recall",
+            "val_precision",
+            "threshold",
+            "calibration_status",
+        )
+        if column in frame.columns
+    ]
+    view = frame[keep]
+    assert list(view.columns) == keep
+    assert float(view.loc[0, "threshold"]) == 0.525
+
+
 def test_dashboard_smoke_apptest() -> None:
     from streamlit.testing.v1 import AppTest
 

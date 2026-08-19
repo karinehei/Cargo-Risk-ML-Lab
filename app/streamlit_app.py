@@ -58,6 +58,23 @@ def _artifact_list(relative: str) -> list[Any] | None:
     return payload if isinstance(payload, list) else None
 
 
+def experiment_records_frame(records: list[Any]) -> pd.DataFrame:
+    """Flatten experiment records without duplicate column names (e.g. threshold)."""
+    frame = pd.DataFrame(records)
+    if frame.empty:
+        return frame
+    if "validation_metrics" in frame.columns:
+        metrics = pd.json_normalize(frame["validation_metrics"])
+        identity = [
+            column
+            for column in ("model_family", "run_id", "threshold", "calibration_status")
+            if column in frame.columns
+        ]
+        metrics = metrics.drop(columns=[column for column in identity if column in metrics.columns])
+        frame = pd.concat([frame[identity].reset_index(drop=True), metrics], axis=1)
+    return frame.loc[:, ~frame.columns.duplicated()].copy()
+
+
 def _missing(message: str) -> None:
     st.info(message)
 
@@ -573,15 +590,7 @@ def _section_comparison() -> None:
     records = _artifact_list("artifacts/mlops/experiment_records.json")
     if records:
         st.subheader("Experiment records (validation only)")
-        frame = pd.DataFrame(records)
-        if "validation_metrics" in frame.columns:
-            metrics = pd.json_normalize(frame["validation_metrics"])
-            identity = [
-                column
-                for column in ("model_family", "run_id", "threshold", "calibration_status")
-                if column in frame.columns
-            ]
-            frame = pd.concat([frame[identity].reset_index(drop=True), metrics], axis=1)
+        frame = experiment_records_frame(records)
         keep = [
             column
             for column in (

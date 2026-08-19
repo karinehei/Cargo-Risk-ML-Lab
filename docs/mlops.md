@@ -52,7 +52,7 @@ make champion-show        # print artifacts/mlops/champion.json
 make mlflow-ui            # http://127.0.0.1:5000
 ```
 
-`make train` now calls the same MLOps entrypoint as `make experiments`. `make evaluate` still exists for an independently authorised test characterisation; do not run it against frozen v1 unless you intend to rewrite `artifacts/metrics_test.json` (the frozen copy stays in `artifacts/frozen_v1/`).
+`make train` now calls the same MLOps entrypoint as `make experiments`. When `artifacts/frozen_v1/` is present, `save_champion` keeps the existing serving `champion.json` (set `CARGO_RISK_REPLACE_CHAMPION=1` to replace it). `make evaluate` still exists for an independently authorised test characterisation; do not run it against frozen v1 unless you intend to rewrite `artifacts/metrics_test.json` (the frozen copy stays in `artifacts/frozen_v1/`).
 
 ## Evidently
 

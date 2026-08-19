@@ -55,6 +55,10 @@ def _error_shape(body: dict[str, object]) -> None:
 def test_health_ready_predict_explain(tiny_champion: Path) -> None:
     app = _fresh_app()
     with TestClient(app) as client:
+        root = client.get("/", follow_redirects=False)
+        assert root.status_code == 307
+        assert root.headers["location"] == "/docs"
+
         health = client.get("/health")
         assert health.status_code == 200
         body = health.json()

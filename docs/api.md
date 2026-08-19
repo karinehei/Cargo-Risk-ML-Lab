@@ -8,6 +8,7 @@
 
 | Method | Path | Role |
 |---|---|---|
+| `GET` | `/` | Redirects to `/docs`. |
 | `GET` | `/health` | Process liveness only. Does not inspect the champion. |
 | `GET` | `/ready` | Champion metadata, MLflow load, threshold/run agreement, linear explanation metadata. Returns **503** if any check fails. |
 | `GET` | `/model` | Public champion identity. No filesystem paths or storage URIs. |

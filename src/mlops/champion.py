@@ -215,11 +215,23 @@ def select_champion(
 def save_champion(record: ChampionRecord, path: str | Path | None = None) -> Path:
     """Persist champion metadata under artifacts/mlops (never frozen_v1)."""
     import json
+    import os
 
     out = resolve_path(path or "artifacts/mlops/champion.json")
     if "frozen_v1" in str(out):
         raise ValueError("Champion metadata must not be written under artifacts/frozen_v1")
     out.parent.mkdir(parents=True, exist_ok=True)
+    portfolio = resolve_path("artifacts/mlops/champion.json")
+    frozen = resolve_path("artifacts/frozen_v1")
+    replace = os.environ.get("CARGO_RISK_REPLACE_CHAMPION") == "1"
+    if not replace and out.resolve() == portfolio.resolve() and frozen.is_dir() and out.is_file():
+        existing = json.loads(out.read_text(encoding="utf-8"))
+        logger.warning(
+            "Kept existing champion %s because frozen-v1 characterisation is present. "
+            "Set CARGO_RISK_REPLACE_CHAMPION=1 to replace the serving champion.",
+            existing.get("mlflow_run_id"),
+        )
+        return out
     out.write_text(json.dumps(record.to_dict(), indent=2, default=str), encoding="utf-8")
     logger.info("Wrote champion metadata to %s", out)
     return out

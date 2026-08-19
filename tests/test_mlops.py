@@ -316,6 +316,54 @@ def test_champion_policy_prefers_simpler_within_indifference() -> None:
     assert chosen.awaiting_authorized_v2_test is False
 
 
+def test_save_champion_keeps_frozen_portfolio(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    import json
+
+    from src.mlops.champion import ChampionRecord, save_champion
+
+    frozen = tmp_path / "frozen_v1"
+    frozen.mkdir()
+    (frozen / "metrics_test.json").write_text("{}", encoding="utf-8")
+    portfolio = tmp_path / "mlops" / "champion.json"
+    portfolio.parent.mkdir()
+    portfolio.write_text(
+        json.dumps({"mlflow_run_id": "8041c2e0afaf4ecea05399ae55a87816"}),
+        encoding="utf-8",
+    )
+
+    def fake_resolve(path: str | Path | None = None) -> Path:
+        text = str(path or "artifacts/mlops/champion.json")
+        if "frozen_v1" in text:
+            return frozen
+        return portfolio
+
+    monkeypatch.setattr("src.mlops.champion.resolve_path", fake_resolve)
+    record = ChampionRecord(
+        model_name="logreg",
+        model_version="other",
+        mlflow_run_id="newrun",
+        dataset_fingerprint="0" * 64,
+        threshold=0.5,
+        threshold_selection_method="validation",
+        calibration_status="none",
+        validation_metrics={"val_pr_auc": 0.2},
+        artifact_uri="runs:/newrun/model",
+        created_at="2026-01-01T00:00:00+00:00",
+        git_commit="x",
+        policy_version="1.0.0",
+        reason="x",
+        awaiting_authorized_v2_test=False,
+        test_evaluation_note="x",
+        serialization="cloudpickle",
+        roundtrip_ok=True,
+    )
+    save_champion(record, portfolio)
+    kept = json.loads(portfolio.read_text(encoding="utf-8"))
+    assert kept["mlflow_run_id"] == "8041c2e0afaf4ecea05399ae55a87816"
+
+
 def test_mlops_scripts_do_not_write_frozen_v1() -> None:
     for rel in (
         "scripts/run_mlops.py",

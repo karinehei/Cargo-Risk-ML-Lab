@@ -123,7 +123,7 @@ mlflow-init:
 	$(PYTHON) -m scripts.init_mlflow
 
 mlflow-ui:
-	$(PYTHON) -m mlflow ui --backend-store-uri sqlite:///mlruns/mlflow.db --port 5000
+	$(PYTHON) -m mlflow ui --backend-store-uri sqlite:///mlruns/mlflow.db --host 0.0.0.0 --port 5000
 
 mlflow-list:
 	$(PYTHON) -m scripts.list_mlflow_runs
@@ -144,7 +144,7 @@ serve-api:
 	$(PYTHON) -m uvicorn src.api.main:app --host 0.0.0.0 --port 8000 --reload
 
 serve-app:
-	$(PYTHON) -m streamlit run app/streamlit_app.py
+	$(PYTHON) -m streamlit run app/streamlit_app.py --server.port=8501 --server.address=0.0.0.0 --server.headless=true
 
 api-health:
 	$(PYTHON) -c "import urllib.request; print(urllib.request.urlopen('http://127.0.0.1:8000/health').read().decode())"

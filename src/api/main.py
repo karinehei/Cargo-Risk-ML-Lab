@@ -10,7 +10,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI, Header, HTTPException, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse, Response
+from fastapi.responses import JSONResponse, RedirectResponse, Response
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from src import DISCLAIMER, __version__
@@ -208,6 +208,10 @@ def create_app() -> FastAPI:
     async def unhandled_handler(request: Request, _exc: Exception) -> JSONResponse:
         logger.warning("handler_error type=%s", type(_exc).__name__)
         return error_response(500, "INTERNAL_ERROR", GENERIC_INTERNAL, _request_id(request))
+
+    @application.get("/", include_in_schema=False)
+    def root() -> RedirectResponse:
+        return RedirectResponse(url="/docs", status_code=307)
 
     @application.get("/health", response_model=HealthResponse)
     def health() -> HealthResponse:
