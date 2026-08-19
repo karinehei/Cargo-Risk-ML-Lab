@@ -47,6 +47,7 @@ def test_dockerfile_runtime_constraints() -> None:
     assert "ensurepip" in text
     assert "setuptools-70*" in text
     assert "msgpack-1.1*" in text
+    assert "nvidia-nccl-cu13" in text
     assert '".[dev]"' not in text
     assert "[dev]" not in text
     assert "COPY data" not in text
@@ -83,10 +84,20 @@ def test_ci_trivy_scans_exported_archive() -> None:
         encoding="utf-8"
     )
     assert "provenance: false" in text
+    assert "driver: docker" in text
+    assert "scripts/ci/free_runner_disk.sh" in text
     assert "docker save cargo-risk-ml-lab:ci" in text
     assert "ignore-unfixed: true" in text
     assert "input:" in text
     assert "image-ref:" not in text
+
+
+def test_ci_frees_runner_disk_before_docker_build() -> None:
+    script = (PROJECT_ROOT / "scripts" / "ci" / "free_runner_disk.sh").read_text(encoding="utf-8")
+    assert "GITHUB_ACTIONS" in script
+    assert "/usr/local/lib/android" in script
+    assert "/opt/hostedtoolcache/Python" in script
+    assert "docker image prune" in script
 
 
 def test_ci_container_health_check_exposes_mlflow_paths() -> None:

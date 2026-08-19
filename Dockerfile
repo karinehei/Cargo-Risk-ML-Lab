@@ -24,6 +24,7 @@ RUN python -m venv /opt/venv \
     && /opt/venv/bin/pip uninstall -y setuptools wheel \
     && /opt/venv/bin/pip install --require-hashes --no-cache-dir -r requirements/runtime.lock.txt \
     && /opt/venv/bin/pip install --no-deps --no-cache-dir . \
+    && /opt/venv/bin/pip uninstall -y nvidia-nccl-cu13 \
     && rm -rf /opt/venv/lib/python3.12/ensurepip
 
 FROM python:3.12-slim AS runtime

@@ -36,7 +36,7 @@ uv pip compile pyproject.toml --python 3.12 --extra dev --extra security --gener
 3. Run `pip-audit -r requirements/dev.lock.txt`.
 4. Re-run the container Trivy step after lock changes. Do not apply breaking upgrades solely to clear an advisory with no patched release.
 
-`nvidia-nccl-cu13` is a transitive Linux extra of XGBoost 3.x. It is not used for training in this demo. Do not treat it as a CUDA runtime requirement.
+`nvidia-nccl-cu13` is a transitive Linux extra of XGBoost 3.x. It is not used for training in this demo. Do not treat it as a CUDA runtime requirement. The runtime image uninstalls it after the hashed install so the CI image stays smaller.
 
 ## Known advisories retained
 
