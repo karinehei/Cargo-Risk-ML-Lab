@@ -9,8 +9,10 @@ This document is the public-repository boundary. Paths below are classified as t
 | Class | Paths | Commit? |
 |---|---|---|
 | Source code | `src/`, `app/`, `scripts/`, `tests/` | Yes |
-| Configuration | `configs/`, `pyproject.toml`, `requirements/`, `.github/`, `Dockerfile`, `docker-compose.yml`, `Makefile`, `.env.example`, `bandit.yaml`, `.secrets.baseline` | Yes |
+| Configuration | `configs/`, `pyproject.toml`, `requirements/`, `.github/`, `Dockerfile`, `docker-compose.yml`, `Makefile`, `.gitattributes`, `.env.example`, `bandit.yaml`, `.secrets.baseline` | Yes |
 | Documentation | `docs/`, `README.md`, `SECURITY.md`, `CONTRIBUTING.md`, `LICENSE`, `artifacts/README.md` | Yes |
+| Public Pages site | `site/index.html`, `site/styles.css`, `site/app.js`, the named JSON files in `site/data/`, and the named PNG files in `site/figures/` | Yes, aggregate evidence only |
+| Pages preview | `.pages-preview/` | No |
 | Safe aggregate demonstration artifact | `artifacts/README.md` only. Champion JSON, plots, monitoring reports and frozen-v1 metrics are **local** | No (except README placeholders) |
 | Reproducible generated artifact | `data/raw/*.csv`, `data/processed/*.csv`, `data/monitoring/*.csv`, bootstrap outputs under `artifacts/bootstrap/` and `.ci-work/` | No; recreate with documented commands |
 | Local runtime state | `mlruns/`, `mlartifacts/`, `*.db`, `*.sqlite`, uvicorn/streamlit logs | No |
@@ -39,6 +41,31 @@ Directory placeholders that **may** be committed: `data/raw/.gitkeep`, `data/pro
 Serialized MLflow models use **cloudpickle** and are executable. Load only from the local tracking store (`runs:/` or `models:/` URIs). The API never accepts a model path, MLflow URI, config path or reload target from a request body. Verify checksums when `artifact_sha256` is present on champion metadata.
 
 Frozen-v1 test characterisation lives under `artifacts/frozen_v1/` (gitignored). It is not a CI input and is never used for model selection.
+
+## Public Pages evidence
+
+`site/` is a narrow exception for the static portfolio. The boundary check allows only:
+
+- `site/index.html`, `site/styles.css`, `site/app.js`
+- `site/data/manifest.json`
+- `site/data/model_comparison.json`
+- `site/data/validation_curves.json`
+- `site/data/threshold_grid.json`
+- `site/data/explanations.json`
+- `site/data/examples.json`
+- `site/data/historical_test.json`
+- `site/figures/validation_pr_curve.png`
+- `site/figures/validation_roc_curve.png`
+- `site/figures/validation_calibration_curve.png`
+- `site/figures/model_comparison_pr_auc.png`
+- `site/figures/champion_coefficients.png`
+- `site/figures/validation_threshold_tradeoff.png`
+
+Those JSON files use schema `1.0.0` and the schema names in `src/pages/schema.py`. They may contain aggregate comparison metrics, validation curve coordinates, validation threshold counts, coefficient and permutation summaries, precomputed fictional examples, and provenance hashes. They must not contain raw dataset rows, row-level predictions, MLflow databases, serialized models, absolute filesystem paths, credentials, or runtime state.
+
+Any other file under `site/`, including CSV, pickle, joblib, or a development fixture, fails `python -m scripts.audit_repository_boundary`. `python -m scripts.verify_pages_evidence` checks hashes, the champion-policy arithmetic, confusion-count arithmetic, and the split labels. Development fixtures belong under `tests/fixtures/pages/` and are labelled `development_fixture: true`.
+
+The rest of `artifacts/`, `data/`, and `mlruns/` stays excluded.
 
 ## Git worktree note
 

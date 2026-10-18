@@ -1,0 +1,150 @@
+{
+  "schema_version": "1.0.0",
+  "schema_name": "pages.manifest",
+  "generated_at": "2026-10-18T10:19:38.549283+00:00",
+  "generator": "scripts.export_pages_evidence",
+  "project_subpath": "Cargo-Risk-ML-Lab",
+  "model": {
+    "name": "logreg",
+    "version": "logreg-none-1.0.0",
+    "mlflow_run_id": "8041c2e0afaf4ecea05399ae55a87816",
+    "run_name": "compare_logreg",
+    "threshold": 0.525,
+    "threshold_selection_method": "validation_fbeta_beta2.0_min_precision_0.2",
+    "calibration_status": "none",
+    "score_is_calibrated": false,
+    "score_semantics": "ranking and threshold score, not a literal probability",
+    "score_warning": "This review score is not a calibrated probability. It is a ranking and threshold score from a class-weighted logistic regression. Use it only with the decision threshold to decide whether to send a shipment for additional human review."
+  },
+  "source_split_for_curves": "validation",
+  "historical_test_reproduced": false,
+  "configuration": {
+    "config_path": "configs/default.yaml",
+    "config_sha256": "dbe30ad66a6d1a6289552f03b737280bf511c182a6795494610a744b164614fa",
+    "random_seed": 42,
+    "n_train": 10500,
+    "n_validation": 1500,
+    "cv_folds": 3,
+    "threshold_grid": {
+      "minimum": 0.05,
+      "maximum": 0.95,
+      "size": 37,
+      "method": "numpy.linspace"
+    },
+    "selection_metric": "validation_pr_auc",
+    "policy_version": "1.0.0"
+  },
+  "source_artifacts": [
+    {
+      "path": "artifacts/mlops/champion.json",
+      "sha256": "2a4aa5693ac9d32342e9ff198fcf81ec2f88cb1990d891ae6ca61c76cc51f94d",
+      "role": "registered champion"
+    },
+    {
+      "path": "artifacts/mlops/experiment_records.json",
+      "sha256": "4de0e1f0242e981c3a308f388da62f6ee4358fb53f3d3be9a3188fab2a61df91",
+      "role": "same-experiment comparison records"
+    },
+    {
+      "path": "artifacts/metrics_validation.json",
+      "sha256": "7df7e8e6f5bbfbff4e8d6ae6d4ae42abb819e4034753c0739b15a296bb8c7970",
+      "role": "validation metric summary"
+    },
+    {
+      "path": "artifacts/model_comparison.json",
+      "sha256": "127b3dc114611c0f641c7b9cbd705c754509de7bc6d270e6a28acead0faa3fe6",
+      "role": "stored validation threshold sweep"
+    },
+    {
+      "path": "artifacts/model_metadata.json",
+      "sha256": "7249695f4e9b643268361f5ffceedb02cb94d416fa424aace0c9a47e5642de39",
+      "role": "training metadata"
+    },
+    {
+      "path": "artifacts/explanations/global_coefficients.json",
+      "sha256": "297e1b5ef1a6be02003f048bb20ad747c8e9cfe187a041a4636b0ea7f5a47f7c",
+      "role": "saved coefficient table"
+    },
+    {
+      "path": "artifacts/explanations/permutation_importance.json",
+      "sha256": "c125a60c0a7e0a318b67b8b41e08bc0e646e84b536df175567a35290ef98f5e0",
+      "role": "saved permutation importance"
+    },
+    {
+      "path": "artifacts/frozen_v1/metrics_test.json",
+      "sha256": "fc94af403d642f2930effa4256d5999f3e4230599aa77bd7934efe7b6179b92c",
+      "role": "historical test summary"
+    },
+    {
+      "path": "artifacts/audit/bootstrap_test_v1.csv",
+      "sha256": "bafb35298a1de245ee706692e4a8835478c73abf3c215e4eb80cea756f03b395",
+      "role": "historical bootstrap intervals"
+    },
+    {
+      "path": "artifacts/audit/operational_rates.csv",
+      "sha256": "b34b027f42fe5d376d2d8e5dad723c40abf65bfdef37f820ea224c76fe4a0801",
+      "role": "historical per-1000 test summary"
+    },
+    {
+      "path": "configs/default.yaml",
+      "sha256": "dbe30ad66a6d1a6289552f03b737280bf511c182a6795494610a744b164614fa",
+      "role": "training configuration"
+    }
+  ],
+  "files": {
+    "model_comparison.json": {
+      "sha256": "922c865aff5cfe3fd58bf919c92b193363c2550150569b0cb3ecc4bcfe4196ca",
+      "schema_name": "pages.model_comparison"
+    },
+    "validation_curves.json": {
+      "sha256": "b5a6fc19b3345abeac59474551359d1b033f4c2aec2d50a40194970b012a087e",
+      "schema_name": "pages.validation_curves"
+    },
+    "threshold_grid.json": {
+      "sha256": "62b35cad200ec045ef98578281982d5b50ccd3e9ca2a424f7580f0c832824265",
+      "schema_name": "pages.threshold_grid"
+    },
+    "explanations.json": {
+      "sha256": "ba3cddb78b0c4f7c32aaf4959d1c4c3e5058942bb6f8c8c86955d973451cc139",
+      "schema_name": "pages.explanations"
+    },
+    "examples.json": {
+      "sha256": "161f4192c890b62359d61281826d9cdd72cbe49f8c0f867227c18e5931358fb9",
+      "schema_name": "pages.examples"
+    },
+    "historical_test.json": {
+      "sha256": "f4baf4f44f1eb916b54dbe700a31ae4d9151e3f979abfac3b19c6eec2ae112bd",
+      "schema_name": "pages.historical_test"
+    }
+  },
+  "figures": {
+    "validation_pr_curve.png": {
+      "sha256": "6c82687d5d87f45d09675f37000d31760f1f524695285e7fb35aa3de26e8fe61"
+    },
+    "validation_roc_curve.png": {
+      "sha256": "bd950107859dc7b6d021dd38c935cb7f601af7ece9b6f995407a8ef18ff75a38"
+    },
+    "validation_calibration_curve.png": {
+      "sha256": "e46e6c0cc900829570df073ad7a23ea3130c192c6eba05b1dd42ba2d17bb61b0"
+    },
+    "model_comparison_pr_auc.png": {
+      "sha256": "023428ca8918a9d10ce44c8504a798d3a8cafbd1d166bb0b96bdf93df392ca6c"
+    },
+    "champion_coefficients.png": {
+      "sha256": "91272d395de33d7b4f653e238c13bb64f7dd2e16342517e7847d8bcf7e7a0555"
+    },
+    "validation_threshold_tradeoff.png": {
+      "sha256": "e8d493312a581155409e33e5896fb99ad48368ef4ae2270ac0e85085800e7331"
+    }
+  },
+  "training_git_commit": "93de709982b24daba9031cafe28e7e86276d9d8f",
+  "export_git_commit": "64135b4aaf0fc3aedab0c28c7fe5b4abdacbe2a1",
+  "did_not": [
+    "evaluate the frozen test set",
+    "retune the threshold",
+    "overwrite artifacts/frozen_v1",
+    "export raw dataset rows",
+    "export row-level prediction arrays",
+    "export model serialization"
+  ]
+}

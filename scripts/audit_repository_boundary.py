@@ -5,6 +5,8 @@ from __future__ import annotations
 import argparse
 
 from src.config import PROJECT_ROOT
+from src.pages.schema import unexpected_site_files
+from src.pages.verify import VerificationError, verify_site
 
 
 def gitignore_text() -> str:
@@ -41,11 +43,21 @@ def audit() -> dict[str, object]:
     missing_gi = [token for token in required_gitignore_tokens() if token not in gi]
     missing_di = [token for token in required_dockerignore_tokens() if token not in di]
     env_files = [str(path.relative_to(PROJECT_ROOT)) for path in PROJECT_ROOT.glob(".env")]
+    site_dir = PROJECT_ROOT / "site"
+    unexpected = unexpected_site_files(site_dir)
+    pages_error = ""
+    if (site_dir / "index.html").is_file():
+        try:
+            verify_site(site_dir)
+        except VerificationError as exc:
+            pages_error = str(exc)
     return {
         "gitignore_missing": missing_gi,
         "dockerignore_missing": missing_di,
         "env_files_present": env_files,
         "git_worktree": (PROJECT_ROOT / ".git").exists(),
+        "unexpected_site_files": unexpected,
+        "pages_verification_error": pages_error,
     }
 
 
@@ -53,8 +65,13 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Repository boundary filesystem audit")
     parser.parse_args()
     payload = audit()
-    if payload["gitignore_missing"] or payload["dockerignore_missing"]:
-        raise SystemExit(f"Ignore-file gaps: {payload}")
+    if (
+        payload["gitignore_missing"]
+        or payload["dockerignore_missing"]
+        or payload["unexpected_site_files"]
+        or payload["pages_verification_error"]
+    ):
+        raise SystemExit(f"Repository boundary gaps: {payload}")
     print("repository_boundary_ok")
     if not payload["git_worktree"]:
         print(

@@ -77,6 +77,9 @@ logs/
 
 # Isolated bootstrap / CI worktrees
 .ci-work/
+
+# Local GitHub Pages preview. The committable site is site/.
+.pages-preview/
 artifacts/bootstrap/*
 !artifacts/bootstrap/.gitkeep
 
