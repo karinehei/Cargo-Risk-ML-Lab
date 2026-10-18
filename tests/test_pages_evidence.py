@@ -311,6 +311,22 @@ def test_preview_tree_uses_the_project_subpath(tmp_path: Path) -> None:
     assert "127.0.0.1" not in script
 
 
+def test_pages_verifier_imports_no_scientific_stack() -> None:
+    import ast
+
+    source = (PROJECT_ROOT / "scripts" / "verify_pages_evidence.py").read_text(encoding="utf-8")
+    tree = ast.parse(source)
+    imported: list[str] = []
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Import):
+            imported.extend(alias.name for alias in node.names)
+        elif isinstance(node, ast.ImportFrom) and node.module is not None:
+            imported.append(node.module)
+    assert "src.config" not in imported
+    assert "numpy" not in imported
+    assert "src.pages.verify" in imported
+
+
 def test_repository_policy_names_the_public_bundle() -> None:
     text = (PROJECT_ROOT / "docs" / "repository_policy.md").read_text(encoding="utf-8")
     for name in (

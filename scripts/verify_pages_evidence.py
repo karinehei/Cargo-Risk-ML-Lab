@@ -5,8 +5,9 @@ from __future__ import annotations
 import argparse
 from pathlib import Path
 
-from src.config import PROJECT_ROOT
 from src.pages.verify import verify_site
+
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
 
 
 def main() -> None:
