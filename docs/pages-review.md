@@ -71,7 +71,7 @@ From the project virtual environment in WSL (`~/.venvs/cargo-risk-ml-lab`):
 - After the sticky-navigation CSS change: `ruff check` on the same Pages paths passed, `python -m scripts.verify_pages_evidence` printed `pages_evidence_verified`, and `python -m detect_secrets scan --baseline .secrets.baseline` with the Makefile exclude pattern exited 0.
 - `bandit -c bandit.yaml -r src/pages scripts/export_pages_evidence.py scripts/verify_pages_evidence.py scripts/preview_pages.py scripts/audit_repository_boundary.py` exited 0.
 
-`python -m scripts.preview_pages` is serving `http://127.0.0.1:8765/Cargo-Risk-ML-Lab/`. The first request returned HTTP 200. That address is a local preview.
+`python -m scripts.preview_pages` served `http://127.0.0.1:8765/Cargo-Risk-ML-Lab/` and the first request returned HTTP 200. That process has since been stopped. The address was a local preview.
 
 ## Browser checks
 
@@ -99,4 +99,4 @@ The first preview process was started before `scroll-padding-top` was added. The
 - Permutation ranks and coefficients can disagree because they group features differently. Permutation importance was not recomputed for the registered champion run.
 - Explanations reconstruct the model score. They do not establish cause.
 - Nothing on the page authorises an automated adverse decision.
-- GitHub Actions has not run `.github/workflows/pages.yml` for this branch. Pages hosting has not been enabled. The site is not published at `https://karinehei.github.io/Cargo-Risk-ML-Lab/`.
+- The GitHub Pages `deploy` job ran and failed in the evidence check: `scripts/verify_pages_evidence.py` imported `src.config`, which imports NumPy, and that job installs no packages. The verifier now resolves the repository root itself and imports only `src.pages.verify`. This local fix has not been pushed, so that failed run did not publish `https://karinehei.github.io/Cargo-Risk-ML-Lab/`.
