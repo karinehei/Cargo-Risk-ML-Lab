@@ -1,0 +1,281 @@
+{
+  "schema_version": "1.0.0",
+  "schema_name": "pages.explanations",
+  "evidence_class": "locally_generated",
+  "model": {
+    "name": "logreg",
+    "version": "logreg-none-1.0.0",
+    "mlflow_run_id": "8041c2e0afaf4ecea05399ae55a87816",
+    "run_name": "compare_logreg",
+    "threshold": 0.525,
+    "threshold_selection_method": "validation_fbeta_beta2.0_min_precision_0.2",
+    "calibration_status": "none",
+    "score_is_calibrated": false,
+    "score_semantics": "ranking and threshold score, not a literal probability",
+    "score_warning": "This review score is not a calibrated probability. It is a ranking and threshold score from a class-weighted logistic regression. Use it only with the decision threshold to decide whether to send a shipment for additional human review."
+  },
+  "score_is_calibrated": false,
+  "intercept_log_odds": -0.03831913687578673,
+  "coefficient_caveat": "Raw coefficients are on the transformed scale (standardised numerics and one-hot categories). coefficient_original_unit divides by the scaler scale for numerics. Correlated features can make coefficients unstable. These are model associations, not causal effects.",
+  "causation_disclaimer": "Feature contributions explain this model's internal score, not real-world causation, customs risk, or enforcement outcomes.",
+  "saved_coefficient_artifact_matches_champion": true,
+  "saved_coefficient_path": "artifacts/explanations/global_coefficients.json",
+  "saved_coefficient_sha256": "297e1b5ef1a6be02003f048bb20ad747c8e9cfe187a041a4636b0ea7f5a47f7c",
+  "top_coefficients": [
+    {
+      "transformed_feature": "commodity_category_pharmaceuticals",
+      "display_name": "commodity_category = pharmaceuticals",
+      "source_feature": "commodity_category",
+      "kind": "categorical",
+      "coefficient_transformed": 0.3885424661728732,
+      "coefficient_original_unit": null,
+      "direction": "higher_review_score",
+      "interpretation": "Change in log-odds when this category dummy is 1 versus 0"
+    },
+    {
+      "transformed_feature": "commodity_category_electronics",
+      "display_name": "commodity_category = electronics",
+      "source_feature": "commodity_category",
+      "kind": "categorical",
+      "coefficient_transformed": 0.3556403015412339,
+      "coefficient_original_unit": null,
+      "direction": "higher_review_score",
+      "interpretation": "Change in log-odds when this category dummy is 1 versus 0"
+    },
+    {
+      "transformed_feature": "declared_vs_estimated_value_deviation",
+      "display_name": "declared_vs_estimated_value_deviation",
+      "source_feature": "declared_vs_estimated_value_deviation",
+      "kind": "numeric",
+      "coefficient_transformed": 0.29931268221456286,
+      "coefficient_original_unit": 0.14999697530500558,
+      "direction": "higher_review_score",
+      "interpretation": "Change in log-odds for +1 SD of the imputed numeric feature"
+    },
+    {
+      "transformed_feature": "commodity_category_foodstuffs",
+      "display_name": "commodity_category = foodstuffs",
+      "source_feature": "commodity_category",
+      "kind": "categorical",
+      "coefficient_transformed": -0.27003267541855536,
+      "coefficient_original_unit": null,
+      "direction": "lower_review_score",
+      "interpretation": "Change in log-odds when this category dummy is 1 versus 0"
+    },
+    {
+      "transformed_feature": "declaration_completeness_score",
+      "display_name": "declaration_completeness_score",
+      "source_feature": "declaration_completeness_score",
+      "kind": "numeric",
+      "coefficient_transformed": -0.23028399668591729,
+      "coefficient_original_unit": -1.7846287142893291,
+      "direction": "lower_review_score",
+      "interpretation": "Change in log-odds for +1 SD of the imputed numeric feature"
+    },
+    {
+      "transformed_feature": "declared_value_eur",
+      "display_name": "declared_value_eur",
+      "source_feature": "declared_value_eur",
+      "kind": "numeric",
+      "coefficient_transformed": 0.16485104049827448,
+      "coefficient_original_unit": 1.1421194586360738e-05,
+      "direction": "higher_review_score",
+      "interpretation": "Change in log-odds for +1 SD of the imputed numeric feature"
+    },
+    {
+      "transformed_feature": "is_off_hours",
+      "display_name": "is_off_hours",
+      "source_feature": "is_off_hours",
+      "kind": "numeric",
+      "coefficient_transformed": 0.15130745198870613,
+      "coefficient_original_unit": 0.44403640306063924,
+      "direction": "higher_review_score",
+      "interpretation": "Change in log-odds for +1 SD of the imputed numeric feature"
+    },
+    {
+      "transformed_feature": "commodity_category_machinery",
+      "display_name": "commodity_category = machinery",
+      "source_feature": "commodity_category",
+      "kind": "categorical",
+      "coefficient_transformed": -0.13925010382367115,
+      "coefficient_original_unit": null,
+      "direction": "lower_review_score",
+      "interpretation": "Change in log-odds when this category dummy is 1 versus 0"
+    },
+    {
+      "transformed_feature": "commodity_category_textiles",
+      "display_name": "commodity_category = textiles",
+      "source_feature": "commodity_category",
+      "kind": "categorical",
+      "coefficient_transformed": -0.13493165749622826,
+      "coefficient_original_unit": null,
+      "direction": "lower_review_score",
+      "interpretation": "Change in log-odds when this category dummy is 1 versus 0"
+    },
+    {
+      "transformed_feature": "transport_mode_air",
+      "display_name": "transport_mode = air",
+      "source_feature": "transport_mode",
+      "kind": "categorical",
+      "coefficient_transformed": 0.1222454961105597,
+      "coefficient_original_unit": null,
+      "direction": "higher_review_score",
+      "interpretation": "Change in log-odds when this category dummy is 1 versus 0"
+    },
+    {
+      "transformed_feature": "commodity_category_other",
+      "display_name": "commodity_category = other",
+      "source_feature": "commodity_category",
+      "kind": "categorical",
+      "coefficient_transformed": -0.11209881872745239,
+      "coefficient_original_unit": null,
+      "direction": "lower_review_score",
+      "interpretation": "Change in log-odds when this category dummy is 1 versus 0"
+    },
+    {
+      "transformed_feature": "documentation_count",
+      "display_name": "documentation_count",
+      "source_feature": "documentation_count",
+      "kind": "numeric",
+      "coefficient_transformed": -0.11132064690489507,
+      "coefficient_original_unit": -0.045594342981798826,
+      "direction": "lower_review_score",
+      "interpretation": "Change in log-odds for +1 SD of the imputed numeric feature"
+    },
+    {
+      "transformed_feature": "commodity_category_automotive",
+      "display_name": "commodity_category = automotive",
+      "source_feature": "commodity_category",
+      "kind": "categorical",
+      "coefficient_transformed": -0.09839010861415956,
+      "coefficient_original_unit": null,
+      "direction": "lower_review_score",
+      "interpretation": "Change in log-odds when this category dummy is 1 versus 0"
+    },
+    {
+      "transformed_feature": "sender_history_length",
+      "display_name": "sender_history_length",
+      "source_feature": "sender_history_length",
+      "kind": "numeric",
+      "coefficient_transformed": -0.08755113295070213,
+      "coefficient_original_unit": -0.00880546095000997,
+      "direction": "lower_review_score",
+      "interpretation": "Change in log-odds for +1 SD of the imputed numeric feature"
+    },
+    {
+      "transformed_feature": "transport_mode_sea",
+      "display_name": "transport_mode = sea",
+      "source_feature": "transport_mode",
+      "kind": "categorical",
+      "coefficient_transformed": -0.08738775447944606,
+      "coefficient_original_unit": null,
+      "direction": "lower_review_score",
+      "interpretation": "Change in log-odds when this category dummy is 1 versus 0"
+    }
+  ],
+  "grouped_original_features": [
+    {
+      "source_feature": "commodity_category",
+      "l2_transformed_coefficient": 0.6410698852967474,
+      "n_transformed_features": 8
+    },
+    {
+      "source_feature": "declared_vs_estimated_value_deviation",
+      "l2_transformed_coefficient": 0.29931268221456286,
+      "n_transformed_features": 1
+    },
+    {
+      "source_feature": "declaration_completeness_score",
+      "l2_transformed_coefficient": 0.23028399668591729,
+      "n_transformed_features": 1
+    },
+    {
+      "source_feature": "declared_value_eur",
+      "l2_transformed_coefficient": 0.16485104049827448,
+      "n_transformed_features": 1
+    },
+    {
+      "source_feature": "transport_mode",
+      "l2_transformed_coefficient": 0.15984707608539175,
+      "n_transformed_features": 4
+    },
+    {
+      "source_feature": "is_off_hours",
+      "l2_transformed_coefficient": 0.15130745198870613,
+      "n_transformed_features": 1
+    },
+    {
+      "source_feature": "destination_region",
+      "l2_transformed_coefficient": 0.1181666051223989,
+      "n_transformed_features": 4
+    },
+    {
+      "source_feature": "documentation_count",
+      "l2_transformed_coefficient": 0.11132064690489507,
+      "n_transformed_features": 1
+    }
+  ],
+  "permutation_importance": {
+    "evidence_class": "locally_generated_artifact",
+    "recomputed_by_this_export": false,
+    "source_path": "artifacts/explanations/permutation_importance.json",
+    "source_sha256": "c125a60c0a7e0a318b67b8b41e08bc0e646e84b536df175567a35290ef98f5e0",
+    "source_mlflow_run_id": "bb0f045e02784e289bee4b0911e97e9a",
+    "split": "validation",
+    "scoring": "average_precision",
+    "n_repeats": 10,
+    "rows": [
+      {
+        "feature": "declared_vs_estimated_value_deviation",
+        "importance_mean": 0.05702681940301144,
+        "importance_std": 0.006791071866391929
+      },
+      {
+        "feature": "declaration_completeness_score",
+        "importance_mean": 0.03168623197183074,
+        "importance_std": 0.009003007196817561
+      },
+      {
+        "feature": "declared_value_eur",
+        "importance_mean": 0.03108260763923513,
+        "importance_std": 0.005758963495626755
+      },
+      {
+        "feature": "commodity_category",
+        "importance_mean": 0.012535539434604925,
+        "importance_std": 0.008428545139319675
+      },
+      {
+        "feature": "is_off_hours",
+        "importance_mean": 0.011175468398835093,
+        "importance_std": 0.004233220500155833
+      },
+      {
+        "feature": "sender_history_length",
+        "importance_mean": 0.007314634521015698,
+        "importance_std": 0.004215948283510782
+      },
+      {
+        "feature": "previous_discrepancies",
+        "importance_mean": 0.005662416234175352,
+        "importance_std": 0.0021938714590241195
+      },
+      {
+        "feature": "transport_mode",
+        "importance_mean": 0.005284831542290818,
+        "importance_std": 0.002590650458747655
+      },
+      {
+        "feature": "documentation_count",
+        "importance_mean": 0.0037595827723838292,
+        "importance_std": 0.0038917483388041514
+      },
+      {
+        "feature": "shipment_weight_kg",
+        "importance_mean": 0.003350246306501772,
+        "importance_std": 0.0013694363504114292
+      }
+    ],
+    "note": "Permutation importance is the saved validation artifact. This export did not shuffle features again."
+  }
+}

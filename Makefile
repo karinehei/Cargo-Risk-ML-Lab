@@ -6,6 +6,7 @@
 	monitoring-reference monitoring-scenario monitoring-run monitoring-labelled monitoring-status monitoring-all \
 	monitoring-null-audit monitoring-validation \
 	bootstrap-demo bootstrap-ci bandit pip-audit secrets-scan sbom repo-audit \
+	export-pages verify-pages preview-pages \
 	clean
 
 PYTHON ?= python
@@ -21,6 +22,9 @@ help:
 	@echo "  secrets-scan       detect-secrets baseline comparison"
 	@echo "  sbom               CycloneDX SBOM from the current environment"
 	@echo "  repo-audit         Filesystem repository-boundary checks"
+	@echo "  export-pages      Write the public Pages evidence bundle"
+	@echo "  verify-pages      Check the public Pages bundle"
+	@echo "  preview-pages     Serve the site at /Cargo-Risk-ML-Lab/"
 	@echo "  format             Format code with Ruff"
 	@echo "  lint               Lint with Ruff"
 	@echo "  typecheck          Run mypy"
@@ -99,6 +103,15 @@ sbom:
 
 repo-audit:
 	$(PYTHON) -m scripts.audit_repository_boundary
+
+export-pages:
+	$(PYTHON) -m scripts.export_pages_evidence
+
+verify-pages:
+	$(PYTHON) -m scripts.verify_pages_evidence
+
+preview-pages:
+	$(PYTHON) -m scripts.preview_pages
 
 check: format lint typecheck test
 

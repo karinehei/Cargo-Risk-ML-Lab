@@ -1,0 +1,11 @@
+{
+  "development_fixture": true,
+  "label": "DEVELOPMENT FIXTURE — not a model result",
+  "schema_version": "1.0.0",
+  "note": "Labelled fixture for verifier tests. Inconsistent counts below are not portfolio evidence.",
+  "true_positives": 1,
+  "false_positives": 1,
+  "true_negatives": 1,
+  "false_negatives": 1,
+  "precision": 0.99
+}

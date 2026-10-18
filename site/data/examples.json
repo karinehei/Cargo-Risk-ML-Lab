@@ -1,0 +1,514 @@
+{
+  "schema_version": "1.0.0",
+  "schema_name": "pages.examples",
+  "evidence_class": "precomputed_fictional",
+  "scored_live_in_browser": false,
+  "split": "not_a_dataset_split",
+  "model": {
+    "name": "logreg",
+    "version": "logreg-none-1.0.0",
+    "mlflow_run_id": "8041c2e0afaf4ecea05399ae55a87816",
+    "run_name": "compare_logreg",
+    "threshold": 0.525,
+    "threshold_selection_method": "validation_fbeta_beta2.0_min_precision_0.2",
+    "calibration_status": "none",
+    "score_is_calibrated": false,
+    "score_semantics": "ranking and threshold score, not a literal probability",
+    "score_warning": "This review score is not a calibrated probability. It is a ranking and threshold score from a class-weighted logistic regression. Use it only with the decision threshold to decide whether to send a shipment for additional human review."
+  },
+  "collision_check": {
+    "splits_compared_for_exact_input_match": [
+      "train",
+      "validation",
+      "test"
+    ],
+    "matches_found": 0,
+    "test_split_scored": false
+  },
+  "examples": [
+    {
+      "example_id": "complete-sea-foodstuffs",
+      "title": "Complete sea shipment of foodstuffs",
+      "description": "Hand-specified fictional input: a complete foodstuffs declaration moving by sea during ordinary hours.",
+      "precomputed_offline": true,
+      "inputs": {
+        "origin_region": "Northern Europe",
+        "destination_region": "Northern Europe",
+        "commodity_category": "foodstuffs",
+        "transport_mode": "sea",
+        "declared_value_eur": 2400.0,
+        "shipment_weight_kg": 800.0,
+        "declaration_completeness_score": 0.96,
+        "documentation_count": 8,
+        "previous_discrepancies": 0,
+        "sender_history_length": 42,
+        "route_rarity": 0.18,
+        "declared_vs_estimated_value_deviation": -0.04,
+        "submission_hour": 11,
+        "expedited_shipment": 0
+      },
+      "review_score": 0.1415053544566813,
+      "decision_threshold": 0.525,
+      "flagged_for_review": false,
+      "intercept_log_odds": -0.03831913687578673,
+      "contributions_log_odds_sum": -1.764523749400789,
+      "logit": -1.8028428862765757,
+      "reconstruction_error": 0.0,
+      "strongest_increasing": [
+        {
+          "display_name": "value_to_weight_ratio",
+          "source_feature": "value_to_weight_ratio",
+          "kind": "numeric",
+          "log_odds_contribution": 0.08183436206687299,
+          "original_value": 3.0
+        },
+        {
+          "display_name": "route_rarity",
+          "source_feature": "route_rarity",
+          "kind": "numeric",
+          "log_odds_contribution": 0.018592641159417424,
+          "original_value": 0.18
+        },
+        {
+          "display_name": "origin_region = Africa",
+          "source_feature": "origin_region",
+          "kind": "categorical",
+          "log_odds_contribution": 0.0,
+          "original_value": "Northern Europe"
+        },
+        {
+          "display_name": "commodity_category = textiles",
+          "source_feature": "commodity_category",
+          "kind": "categorical",
+          "log_odds_contribution": -0.0,
+          "original_value": "foodstuffs"
+        },
+        {
+          "display_name": "commodity_category = machinery",
+          "source_feature": "commodity_category",
+          "kind": "categorical",
+          "log_odds_contribution": -0.0,
+          "original_value": "foodstuffs"
+        },
+        {
+          "display_name": "transport_mode = air",
+          "source_feature": "transport_mode",
+          "kind": "categorical",
+          "log_odds_contribution": 0.0,
+          "original_value": "sea"
+        }
+      ],
+      "strongest_decreasing": [
+        {
+          "display_name": "shipment_weight_kg",
+          "source_feature": "shipment_weight_kg",
+          "kind": "numeric",
+          "log_odds_contribution": -0.403842874446215,
+          "original_value": 800.0
+        },
+        {
+          "display_name": "declaration_completeness_score",
+          "source_feature": "declaration_completeness_score",
+          "kind": "numeric",
+          "log_odds_contribution": -0.378524577296527,
+          "original_value": 0.96
+        },
+        {
+          "display_name": "commodity_category = foodstuffs",
+          "source_feature": "commodity_category",
+          "kind": "categorical",
+          "log_odds_contribution": -0.27003267541855536,
+          "original_value": "foodstuffs"
+        },
+        {
+          "display_name": "sender_history_length",
+          "source_feature": "sender_history_length",
+          "kind": "numeric",
+          "log_odds_contribution": -0.20969156983288026,
+          "original_value": 42
+        },
+        {
+          "display_name": "declared_vs_estimated_value_deviation",
+          "source_feature": "declared_vs_estimated_value_deviation",
+          "kind": "numeric",
+          "log_odds_contribution": -0.15591952301945167,
+          "original_value": -0.04
+        },
+        {
+          "display_name": "documentation_count",
+          "source_feature": "documentation_count",
+          "kind": "numeric",
+          "log_odds_contribution": -0.09117131669008076,
+          "original_value": 8
+        }
+      ],
+      "score_is_calibrated": false,
+      "score_semantics": "ranking and threshold score, not a literal probability",
+      "score_warning": "This review score is not a calibrated probability. It is a ranking and threshold score from a class-weighted logistic regression. Use it only with the decision threshold to decide whether to send a shipment for additional human review.",
+      "causation_disclaimer": "Feature contributions explain this model's internal score, not real-world causation, customs risk, or enforcement outcomes."
+    },
+    {
+      "example_id": "expedited-air-pharmaceuticals",
+      "title": "Expedited air shipment of pharmaceuticals",
+      "description": "Hand-specified fictional input: an expedited air pharmaceutical shipment with a large declared-value deviation and an off-hours submission.",
+      "precomputed_offline": true,
+      "inputs": {
+        "origin_region": "Asia",
+        "destination_region": "Northern Europe",
+        "commodity_category": "pharmaceuticals",
+        "transport_mode": "air",
+        "declared_value_eur": 48750.0,
+        "shipment_weight_kg": 12.5,
+        "declaration_completeness_score": 0.41,
+        "documentation_count": 1,
+        "previous_discrepancies": 3,
+        "sender_history_length": 2,
+        "route_rarity": 0.91,
+        "declared_vs_estimated_value_deviation": 1.75,
+        "submission_hour": 23,
+        "expedited_shipment": 1
+      },
+      "review_score": 0.07388914765518706,
+      "decision_threshold": 0.525,
+      "flagged_for_review": false,
+      "intercept_log_odds": -0.03831913687578673,
+      "contributions_log_odds_sum": -2.4901088361473516,
+      "logit": -2.528427973023138,
+      "reconstruction_error": 2.7755575615628914e-17,
+      "strongest_increasing": [
+        {
+          "display_name": "declaration_completeness_score",
+          "source_feature": "declaration_completeness_score",
+          "kind": "numeric",
+          "log_odds_contribution": 0.603021215562604,
+          "original_value": 0.41
+        },
+        {
+          "display_name": "declared_value_eur",
+          "source_feature": "declared_value_eur",
+          "kind": "numeric",
+          "log_odds_contribution": 0.44699153355711524,
+          "original_value": 48750.0
+        },
+        {
+          "display_name": "commodity_category = pharmaceuticals",
+          "source_feature": "commodity_category",
+          "kind": "categorical",
+          "log_odds_contribution": 0.3885424661728732,
+          "original_value": "pharmaceuticals"
+        },
+        {
+          "display_name": "is_off_hours",
+          "source_feature": "is_off_hours",
+          "kind": "numeric",
+          "log_odds_contribution": 0.38449323586926976,
+          "original_value": 1
+        },
+        {
+          "display_name": "previous_discrepancies",
+          "source_feature": "previous_discrepancies",
+          "kind": "numeric",
+          "log_odds_contribution": 0.2487918281940795,
+          "original_value": 3
+        },
+        {
+          "display_name": "documentation_count",
+          "source_feature": "documentation_count",
+          "kind": "numeric",
+          "log_odds_contribution": 0.227989084182511,
+          "original_value": 1
+        }
+      ],
+      "strongest_decreasing": [
+        {
+          "display_name": "value_to_weight_ratio",
+          "source_feature": "value_to_weight_ratio",
+          "kind": "numeric",
+          "log_odds_contribution": -5.382310631678807,
+          "original_value": 3900.0
+        },
+        {
+          "display_name": "route_rarity",
+          "source_feature": "route_rarity",
+          "kind": "numeric",
+          "log_odds_contribution": -0.10244810043025535,
+          "original_value": 0.91
+        },
+        {
+          "display_name": "destination_region = Northern Europe",
+          "source_feature": "destination_region",
+          "kind": "categorical",
+          "log_odds_contribution": -0.03239967685061781,
+          "original_value": "Northern Europe"
+        },
+        {
+          "display_name": "transport_mode = road",
+          "source_feature": "transport_mode",
+          "kind": "categorical",
+          "log_odds_contribution": -0.0,
+          "original_value": "air"
+        },
+        {
+          "display_name": "commodity_category = automotive",
+          "source_feature": "commodity_category",
+          "kind": "categorical",
+          "log_odds_contribution": -0.0,
+          "original_value": "pharmaceuticals"
+        },
+        {
+          "display_name": "destination_region = UK & Ireland",
+          "source_feature": "destination_region",
+          "kind": "categorical",
+          "log_odds_contribution": 0.0,
+          "original_value": "Northern Europe"
+        }
+      ],
+      "score_is_calibrated": false,
+      "score_semantics": "ranking and threshold score, not a literal probability",
+      "score_warning": "This review score is not a calibrated probability. It is a ranking and threshold score from a class-weighted logistic regression. Use it only with the decision threshold to decide whether to send a shipment for additional human review.",
+      "causation_disclaimer": "Feature contributions explain this model's internal score, not real-world causation, customs risk, or enforcement outcomes."
+    },
+    {
+      "example_id": "incomplete-air-electronics",
+      "title": "Incomplete air shipment of electronics",
+      "description": "Hand-specified fictional input: electronics sent by air with a sparse document count and a night-time submission.",
+      "precomputed_offline": true,
+      "inputs": {
+        "origin_region": "Americas",
+        "destination_region": "UK & Ireland",
+        "commodity_category": "electronics",
+        "transport_mode": "air",
+        "declared_value_eur": 16340.0,
+        "shipment_weight_kg": 36.0,
+        "declaration_completeness_score": 0.28,
+        "documentation_count": 0,
+        "previous_discrepancies": 1,
+        "sender_history_length": 6,
+        "route_rarity": 0.57,
+        "declared_vs_estimated_value_deviation": 0.82,
+        "submission_hour": 2,
+        "expedited_shipment": 0
+      },
+      "review_score": 0.8243547957268974,
+      "decision_threshold": 0.525,
+      "flagged_for_review": true,
+      "intercept_log_odds": -0.03831913687578673,
+      "contributions_log_odds_sum": 1.584454075856305,
+      "logit": 1.5461349389805181,
+      "reconstruction_error": 0.0,
+      "strongest_increasing": [
+        {
+          "display_name": "declaration_completeness_score",
+          "source_feature": "declaration_completeness_score",
+          "kind": "numeric",
+          "log_odds_contribution": 0.8350229484202166,
+          "original_value": 0.28
+        },
+        {
+          "display_name": "is_off_hours",
+          "source_feature": "is_off_hours",
+          "kind": "numeric",
+          "log_odds_contribution": 0.38449323586926976,
+          "original_value": 1
+        },
+        {
+          "display_name": "commodity_category = electronics",
+          "source_feature": "commodity_category",
+          "kind": "categorical",
+          "log_odds_contribution": 0.3556403015412339,
+          "original_value": "electronics"
+        },
+        {
+          "display_name": "documentation_count",
+          "source_feature": "documentation_count",
+          "kind": "numeric",
+          "log_odds_contribution": 0.27358342716430983,
+          "original_value": 0
+        },
+        {
+          "display_name": "transport_mode = air",
+          "source_feature": "transport_mode",
+          "kind": "categorical",
+          "log_odds_contribution": 0.1222454961105597,
+          "original_value": "air"
+        },
+        {
+          "display_name": "sender_history_length",
+          "source_feature": "sender_history_length",
+          "kind": "numeric",
+          "log_odds_contribution": 0.10730502436747862,
+          "original_value": 6
+        }
+      ],
+      "strongest_decreasing": [
+        {
+          "display_name": "value_to_weight_ratio",
+          "source_feature": "value_to_weight_ratio",
+          "kind": "numeric",
+          "log_odds_contribution": -0.5503756109784887,
+          "original_value": 453.8888888888889
+        },
+        {
+          "display_name": "origin_region = Americas",
+          "source_feature": "origin_region",
+          "kind": "categorical",
+          "log_odds_contribution": -0.0749521900217735,
+          "original_value": "Americas"
+        },
+        {
+          "display_name": "submission_hour",
+          "source_feature": "submission_hour",
+          "kind": "numeric",
+          "log_odds_contribution": -0.05449783767270418,
+          "original_value": 2
+        },
+        {
+          "display_name": "route_rarity",
+          "source_feature": "route_rarity",
+          "kind": "numeric",
+          "log_odds_contribution": -0.04607296051177761,
+          "original_value": 0.57
+        },
+        {
+          "display_name": "declared_vs_estimated_value_deviation",
+          "source_feature": "declared_vs_estimated_value_deviation",
+          "kind": "numeric",
+          "log_odds_contribution": -0.02692212425714686,
+          "original_value": 0.82
+        },
+        {
+          "display_name": "expedited_shipment",
+          "source_feature": "expedited_shipment",
+          "kind": "numeric",
+          "log_odds_contribution": -0.020258177854788718,
+          "original_value": 0
+        }
+      ],
+      "score_is_calibrated": false,
+      "score_semantics": "ranking and threshold score, not a literal probability",
+      "score_warning": "This review score is not a calibrated probability. It is a ranking and threshold score from a class-weighted logistic regression. Use it only with the decision threshold to decide whether to send a shipment for additional human review.",
+      "causation_disclaimer": "Feature contributions explain this model's internal score, not real-world causation, customs risk, or enforcement outcomes."
+    },
+    {
+      "example_id": "ordinary-road-machinery",
+      "title": "Ordinary road shipment of machinery",
+      "description": "Hand-specified fictional input: a road machinery shipment with middling completeness and no previous discrepancies.",
+      "precomputed_offline": true,
+      "inputs": {
+        "origin_region": "Central Europe",
+        "destination_region": "Central Europe",
+        "commodity_category": "machinery",
+        "transport_mode": "road",
+        "declared_value_eur": 6150.0,
+        "shipment_weight_kg": 940.0,
+        "declaration_completeness_score": 0.81,
+        "documentation_count": 4,
+        "previous_discrepancies": 0,
+        "sender_history_length": 17,
+        "route_rarity": 0.12,
+        "declared_vs_estimated_value_deviation": 0.06,
+        "submission_hour": 14,
+        "expedited_shipment": 0
+      },
+      "review_score": 0.2930559319115034,
+      "decision_threshold": 0.525,
+      "flagged_for_review": false,
+      "intercept_log_odds": -0.03831913687578673,
+      "contributions_log_odds_sum": -0.8422689295816618,
+      "logit": -0.8805880664574485,
+      "reconstruction_error": 0.0,
+      "strongest_increasing": [
+        {
+          "display_name": "documentation_count",
+          "source_feature": "documentation_count",
+          "kind": "numeric",
+          "log_odds_contribution": 0.09120605523711453,
+          "original_value": 4
+        },
+        {
+          "display_name": "value_to_weight_ratio",
+          "source_feature": "value_to_weight_ratio",
+          "kind": "numeric",
+          "log_odds_contribution": 0.07686720161361296,
+          "original_value": 6.542553191489362
+        },
+        {
+          "display_name": "route_rarity",
+          "source_feature": "route_rarity",
+          "kind": "numeric",
+          "log_odds_contribution": 0.0285411952626782,
+          "original_value": 0.12
+        },
+        {
+          "display_name": "sender_history_length",
+          "source_feature": "sender_history_length",
+          "kind": "numeric",
+          "log_odds_contribution": 0.010444953917368962,
+          "original_value": 17
+        },
+        {
+          "display_name": "origin_region = Central Europe",
+          "source_feature": "origin_region",
+          "kind": "categorical",
+          "log_odds_contribution": 0.00781407810141718,
+          "original_value": "Central Europe"
+        },
+        {
+          "display_name": "destination_region = Central Europe",
+          "source_feature": "destination_region",
+          "kind": "categorical",
+          "log_odds_contribution": 0.007545536540014706,
+          "original_value": "Central Europe"
+        }
+      ],
+      "strongest_decreasing": [
+        {
+          "display_name": "shipment_weight_kg",
+          "source_feature": "shipment_weight_kg",
+          "kind": "numeric",
+          "log_odds_contribution": -0.48913600873575,
+          "original_value": 940.0
+        },
+        {
+          "display_name": "declared_vs_estimated_value_deviation",
+          "source_feature": "declared_vs_estimated_value_deviation",
+          "kind": "numeric",
+          "log_odds_contribution": -0.14091982548895107,
+          "original_value": 0.06
+        },
+        {
+          "display_name": "commodity_category = machinery",
+          "source_feature": "commodity_category",
+          "kind": "categorical",
+          "log_odds_contribution": -0.13925010382367115,
+          "original_value": "machinery"
+        },
+        {
+          "display_name": "declaration_completeness_score",
+          "source_feature": "declaration_completeness_score",
+          "kind": "numeric",
+          "log_odds_contribution": -0.1108302701531278,
+          "original_value": 0.81
+        },
+        {
+          "display_name": "is_off_hours",
+          "source_feature": "is_off_hours",
+          "kind": "numeric",
+          "log_odds_contribution": -0.05954316719136953,
+          "original_value": 0
+        },
+        {
+          "display_name": "previous_discrepancies",
+          "source_feature": "previous_discrepancies",
+          "kind": "numeric",
+          "log_odds_contribution": -0.04975836563881591,
+          "original_value": 0
+        }
+      ],
+      "score_is_calibrated": false,
+      "score_semantics": "ranking and threshold score, not a literal probability",
+      "score_warning": "This review score is not a calibrated probability. It is a ranking and threshold score from a class-weighted logistic regression. Use it only with the decision threshold to decide whether to send a shipment for additional human review.",
+      "causation_disclaimer": "Feature contributions explain this model's internal score, not real-world causation, customs risk, or enforcement outcomes."
+    }
+  ]
+}

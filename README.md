@@ -10,6 +10,32 @@ Core modelling, local MLflow tracking, exact linear explanations, FastAPI servin
 
 Python **3.12** is required. Install from the hashed lock files (`requirements/dev.lock.txt` locally, `requirements/runtime.lock.txt` in the container). GitHub Actions runs lint, tests, a container health check and a HIGH/CRITICAL image scan. Lock-file updates and retained advisories are in `docs/dependencies.md`.
 
+## Static portfolio site
+
+The Python application (data generation, training, MLflow, FastAPI, Streamlit) remains the local working environment. `site/` is a separate static site for GitHub Pages. It does not start those services and it does not accept visitor input for live scoring.
+
+The site shows a verified public evidence bundle: the four-model comparison, validation curves, a validation threshold grid, champion coefficients, and a few fictional examples scored offline. Frozen test numbers are a historical summary. The export does not rerun that test.
+
+From the project environment that can load the local champion:
+
+```bash
+python -m scripts.export_pages_evidence
+python -m scripts.verify_pages_evidence
+python -m scripts.preview_pages
+```
+
+The preview command checks the bundle, then serves it at `http://127.0.0.1:8765/Cargo-Risk-ML-Lab/`. A local preview is not a GitHub Actions run and not a live Pages deployment.
+
+`make export-pages`, `make verify-pages` and `make preview-pages` call the same commands. Evidence sources and the checks that were actually run are recorded in `docs/pages-review.md`.
+
+### Publish to GitHub Pages
+
+Do this only when you intend to host the site. This repository’s workflow file does not enable hosting by itself.
+
+1. Merge `site/` and `.github/workflows/pages.yml` to the default branch. The workflow validates the committed bundle on pull requests. On a push to `main` or `master`, or on a manual run, it uploads that same bundle. It does not train models, score the frozen test set, or read a local MLflow database.
+2. In the GitHub repository settings, set Pages to deploy from GitHub Actions. Leave the Python CI workflow unchanged.
+3. After a successful Actions deployment, the project site is `https://karinehei.github.io/Cargo-Risk-ML-Lab/`.
+
 ## Quick start
 
 A clean clone has no datasets, MLflow database or generated models. Recreate an isolated demonstration (does **not** evaluate the frozen test set and does **not** overwrite portfolio frozen-v1 artifacts):

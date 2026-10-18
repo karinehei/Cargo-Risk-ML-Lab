@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Cargo Risk ML Lab</title>
+    <meta
+      name="description"
+      content="Static portfolio of a synthetic shipment-review model: comparison, validation curves, a threshold grid and precomputed explanations."
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <a class="skip" href="#main">Skip to content</a>
+    <header class="site-header">
+      <p class="eyebrow">Educational machine-learning portfolio</p>
+      <h1>Cargo Risk ML Lab</h1>
+      <p class="lede">
+        A synthetic shipment-review scorer by
+        <a href="https://github.com/karinehei/Cargo-Risk-ML-Lab">Karine Heinonen</a>.
+        The selected model produces a review score for a human queue. That score is not a calibrated probability.
+      </p>
+    </header>
+    <nav class="section-nav" aria-label="Page sections">
+      <ul>
+        <li><a href="#overview">Overview</a></li>
+        <li><a href="#comparison">Comparison</a></li>
+        <li><a href="#evaluation">Evaluation</a></li>
+        <li><a href="#threshold">Threshold</a></li>
+        <li><a href="#examples">Examples</a></li>
+        <li><a href="#model-card">Model card</a></li>
+      </ul>
+    </nav>
+    <main id="main">
+      <section id="overview">
+        <h2>Overview</h2>
+        <p>
+          The problem is fictional. Each synthetic shipment receives a binary label,
+          <em>requires review</em>, drawn from toy rules plus noise. The modelling work
+          compares a dummy class prior, class-weighted logistic regression, a random forest
+          and XGBoost on one stratified train and validation split. Selection uses validation
+          average precision. The held-out test characterisation is a preserved historical summary.
+        </p>
+        <p>
+          This page demonstrates the evaluation protocol, the reason the selected model won,
+          threshold trade-offs and exact linear explanations. It reads a checked evidence bundle
+          shipped with the page. It does not score new visitor input and it does not call the
+          repository’s Python application.
+        </p>
+        <ul>
+          <li>Author: Karine Heinonen</li>
+          <li>
+            Repository:
+            <a href="https://github.com/karinehei/Cargo-Risk-ML-Lab">github.com/karinehei/Cargo-Risk-ML-Lab</a>
+          </li>
+          <li>Training protocol: stratified 70% / 10% / 20%, search on the training fold only</li>
+        </ul>
+        <p id="provenance" class="note">Loading provenance.</p>
+      </section>
+
+      <section id="comparison">
+        <h2>Model comparison</h2>
+        <p>
+          The four rows below come from one saved experiment file and share a dataset fingerprint.
+          Training-fold cross-validation PR-AUC is the search score. Validation PR-AUC is the
+          selection score. Precision and recall use each model’s own validation threshold, so they
+          are not one shared operating point. The frozen test set is not in this table.
+        </p>
+        <figure>
+          <img
+            src="figures/model_comparison_pr_auc.png"
+            alt="Grouped bar chart comparing training-fold cross-validation PR-AUC with validation PR-AUC for the dummy baseline, logistic regression, random forest and XGBoost."
+          />
+          <figcaption id="comparison-caption">
+            Hatched bars are training-fold cross-validation. Solid bars are validation PR-AUC, the selection metric.
+          </figcaption>
+        </figure>
+        <div class="table-wrap">
+          <table>
+            <caption>Primary candidates from the same experiment</caption>
+            <thead>
+              <tr>
+                <th scope="col">Model</th>
+                <th scope="col">CV PR-AUC</th>
+                <th scope="col">Validation PR-AUC</th>
+                <th scope="col">Validation ROC-AUC</th>
+                <th scope="col">Threshold</th>
+                <th scope="col">Precision</th>
+                <th scope="col">Recall</th>
+                <th scope="col">Eligible</th>
+              </tr>
+            </thead>
+            <tbody id="comparison-body"></tbody>
+          </table>
+        </div>
+        <p id="selection-story"></p>
+        <p id="run-identity" class="note"></p>
+        <details>
+          <summary>Other logistic variants in the same experiment file</summary>
+          <p>
+            These rows are calibration and class-weight comparisons. They are not the four-model
+            ranking above. They are included because the champion policy can prefer a simpler
+            family inside a PR-AUC indifference band.
+          </p>
+          <div class="table-wrap">
+            <table>
+              <caption>Logistic variants recorded with the same dataset fingerprint</caption>
+              <thead>
+                <tr>
+                  <th scope="col">Variant</th>
+                  <th scope="col">Validation PR-AUC</th>
+                  <th scope="col">Brier</th>
+                  <th scope="col">ECE</th>
+                  <th scope="col">Recall</th>
+                  <th scope="col">Eligible</th>
+                </tr>
+              </thead>
+              <tbody id="variant-body"></tbody>
+            </table>
+          </div>
+        </details>
+      </section>
+
+      <section id="evaluation">
+        <h2>Evaluation</h2>
+        <p>
+          The curves are the registered champion scored on the validation split during export.
+          They are threshold-free except for the calibration bins. The review score is not a
+          calibrated probability, which is why the calibration plot sits away from the reference diagonal.
+        </p>
+        <div class="table-wrap">
+          <table>
+            <caption>Champion ranking and calibration on the validation split</caption>
+            <thead>
+              <tr>
+                <th scope="col">PR-AUC</th>
+                <th scope="col">ROC-AUC</th>
+                <th scope="col">Brier</th>
+                <th scope="col">ECE</th>
+                <th scope="col">Positive rate</th>
+                <th scope="col">Rows</th>
+              </tr>
+            </thead>
+            <tbody id="ranking-body"></tbody>
+          </table>
+        </div>
+        <div class="figure-grid">
+          <figure>
+            <img
+              src="figures/validation_pr_curve.png"
+              alt="Precision-recall curve on the validation split for the selected logistic regression review score, with a horizontal line at the validation positive rate."
+            />
+            <figcaption id="pr-caption">
+              Validation precision–recall. The horizontal line is the positive rate, which is also the dummy PR-AUC.
+            </figcaption>
+          </figure>
+          <figure>
+            <img
+              src="figures/validation_roc_curve.png"
+              alt="ROC curve on the validation split for the selected logistic regression review score, with a diagonal chance line."
+            />
+            <figcaption id="roc-caption">
+              Validation ROC. The dashed line is chance. This curve does not use the decision threshold.
+            </figcaption>
+          </figure>
+          <figure>
+            <img
+              src="figures/validation_calibration_curve.png"
+              alt="Calibration plot of mean review score against the fraction of validation rows labelled for review. The diagonal is a perfect-calibration reference, not a claim that the score is a probability."
+            />
+            <figcaption id="calibration-caption">
+              Equal-width bins of the review score. Distance from the diagonal is miscalibration, not a probability error in a real process.
+            </figcaption>
+          </figure>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <caption>Equal-width calibration bins on the validation review score</caption>
+            <thead>
+              <tr>
+                <th scope="col">Score from</th>
+                <th scope="col">Score to</th>
+                <th scope="col">Rows</th>
+                <th scope="col">Mean review score</th>
+                <th scope="col">Fraction labelled for review</th>
+              </tr>
+            </thead>
+            <tbody id="calibration-body"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="threshold">
+        <h2>Validation threshold explorer</h2>
+        <p>
+          The control selects one point on the exported validation grid: 37 thresholds from 0.05 to 0.95.
+          Counts are aggregates. Individual validation rows are not published. The frozen test set is not used.
+          Precision is left undefined when no row is flagged, rather than shown as zero.
+        </p>
+        <figure>
+          <img
+            src="figures/validation_threshold_tradeoff.png"
+            alt="Line chart of validation precision, recall and the fraction flagged for review across the threshold grid, with a vertical line at the selected operating threshold."
+          />
+          <figcaption>
+            Solid line with circles: precision. Dashed line with squares: recall. Dotted line with triangles: fraction flagged. The vertical line is the selected operating threshold.
+          </figcaption>
+        </figure>
+        <div class="control">
+          <label for="threshold-index">Review-score threshold on the validation grid</label>
+          <input id="threshold-index" type="range" min="0" max="36" step="1" value="0" />
+          <div class="control-actions">
+            <button type="button" id="use-operating-point">Show the selected operating point</button>
+          </div>
+          <p id="threshold-live" aria-live="polite">Loading the validation threshold grid.</p>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <caption>Confusion counts at the chosen validation threshold</caption>
+            <thead>
+              <tr>
+                <th scope="col">Actual label</th>
+                <th scope="col">Not flagged</th>
+                <th scope="col">Flagged for review</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <th scope="row">No review label</th>
+                <td id="count-tn">—</td>
+                <td id="count-fp">—</td>
+              </tr>
+              <tr>
+                <th scope="row">Review label</th>
+                <td id="count-fn">—</td>
+                <td id="count-tp">—</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="table-wrap threshold-grid">
+          <table>
+            <caption>Full validation threshold grid used by the control and the chart</caption>
+            <thead>
+              <tr>
+                <th scope="col">Threshold</th>
+                <th scope="col">Precision</th>
+                <th scope="col">Recall</th>
+                <th scope="col">F-beta (β = 2)</th>
+                <th scope="col">TP</th>
+                <th scope="col">FP</th>
+                <th scope="col">TN</th>
+                <th scope="col">FN</th>
+                <th scope="col">Flagged</th>
+              </tr>
+            </thead>
+            <tbody id="threshold-body"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="examples">
+        <h2>Precomputed examples and explanations</h2>
+        <p>
+          Each example is a fictional shipment written for this page, scored offline with the
+          registered champion. Choosing one displays that stored result. It does not score text
+          you type, and it is not a live model call.
+        </p>
+        <figure>
+          <img
+            src="figures/champion_coefficients.png"
+            alt="Horizontal bar chart of the largest logistic-regression coefficients on transformed features. Blue bars raise the review score and orange bars lower it."
+          />
+          <figcaption id="coefficient-caption">
+            Coefficients are associations on the transformed scale, not causes. Blue raises the review score; orange lowers it.
+          </figcaption>
+        </figure>
+        <div class="table-wrap">
+          <table>
+            <caption>Largest absolute coefficients of the registered champion</caption>
+            <thead>
+              <tr>
+                <th scope="col">Transformed feature</th>
+                <th scope="col">Coefficient</th>
+                <th scope="col">Direction</th>
+              </tr>
+            </thead>
+            <tbody id="coefficient-body"></tbody>
+          </table>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <caption>Saved validation permutation importance, not recomputed for this page</caption>
+            <thead>
+              <tr>
+                <th scope="col">Feature</th>
+                <th scope="col">Mean PR-AUC drop</th>
+                <th scope="col">Standard deviation</th>
+              </tr>
+            </thead>
+            <tbody id="permutation-body"></tbody>
+          </table>
+        </div>
+        <p id="permutation-note" class="note"></p>
+        <div class="control">
+          <label for="example-select">Choose a precomputed fictional example</label>
+          <select id="example-select"></select>
+        </div>
+        <article id="example-detail" aria-live="polite"></article>
+      </section>
+
+      <section id="model-card">
+        <h2>Model card and limitations</h2>
+        <p>
+          The shipments, labels and review rules are synthetic. They are an educational stand-in,
+          not a customs process and not affiliated with any authority. The positive class is uncommon,
+          so accuracy would look strong for a model that flags almost nobody. The protocol therefore
+          ranks models by validation PR-AUC and chooses the threshold on validation by F-beta with β = 2,
+          subject to a minimum precision.
+        </p>
+        <p>
+          The published champion is class-weighted logistic regression without probability calibration.
+          Class weights push the review score upward. Brier score and expected calibration error on the
+          validation split show the gap. Do not read the score as the probability that a real shipment
+          needs review.
+        </p>
+        <h3>Historical test summary</h3>
+        <p>
+          The numbers below are the frozen test characterisation already stored with the project.
+          This page did not re-score that split and did not draw a test curve from the summary.
+          Details are in the
+          <a href="https://github.com/karinehei/Cargo-Risk-ML-Lab/blob/main/docs/methodological_audit.md">methodological audit</a>
+          and the
+          <a href="https://github.com/karinehei/Cargo-Risk-ML-Lab/blob/main/docs/model_card.md">model card</a>.
+        </p>
+        <div class="table-wrap">
+          <table>
+            <caption>Documented historical test summary at the validation-chosen threshold</caption>
+            <thead>
+              <tr>
+                <th scope="col">PR-AUC</th>
+                <th scope="col">ROC-AUC</th>
+                <th scope="col">Precision</th>
+                <th scope="col">Recall</th>
+                <th scope="col">TP</th>
+                <th scope="col">FP</th>
+                <th scope="col">FN</th>
+                <th scope="col">TN</th>
+                <th scope="col">Rows</th>
+              </tr>
+            </thead>
+            <tbody id="historical-body"></tbody>
+          </table>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <caption>Documented historical bootstrap intervals for the frozen test summary</caption>
+            <thead>
+              <tr>
+                <th scope="col">Metric</th>
+                <th scope="col">Point</th>
+                <th scope="col">95% interval</th>
+              </tr>
+            </thead>
+            <tbody id="bootstrap-body"></tbody>
+          </table>
+        </div>
+        <p id="historical-note" class="note"></p>
+        <h3>What remains unresolved</h3>
+        <ul>
+          <li>Labels follow the toy generator. They are not domain-accurate review decisions.</li>
+          <li>Positive precision is low, so most flags would be extra human reviews.</li>
+          <li>Coefficients and permutation ranks can disagree because they group features differently.</li>
+          <li>Explanations reconstruct the model score. They do not establish cause or operational risk.</li>
+          <li>Nothing here authorises an automated adverse decision.</li>
+        </ul>
+        <p>
+          Further reading:
+          <a href="https://github.com/karinehei/Cargo-Risk-ML-Lab/blob/main/docs/training.md">training protocol</a>,
+          <a href="https://github.com/karinehei/Cargo-Risk-ML-Lab/blob/main/docs/explainability.md">explainability</a>,
+          <a href="https://github.com/karinehei/Cargo-Risk-ML-Lab/blob/main/docs/limitations.md">limitations</a>.
+        </p>
+      </section>
+    </main>
+    <footer>
+      <p>
+        Synthetic educational demonstration. Not a customs, enforcement or credit system.
+        The review score is not a calibrated probability.
+      </p>
+    </footer>
+    <noscript>
+      <p>Numerical tables on this page are filled from the evidence files in <code>data/</code>. Enable JavaScript to use the threshold control and example selector. The figures remain visible without it.</p>
+    </noscript>
+    <script src="app.js"></script>
+  </body>
+</html>

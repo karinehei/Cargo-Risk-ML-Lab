@@ -1,0 +1,88 @@
+{
+  "schema_version": "1.0.0",
+  "schema_name": "pages.historical_test",
+  "evidence_class": "documented_historical",
+  "reproduced_by_this_export": false,
+  "curves_included": false,
+  "validation_rows_included": false,
+  "split": "test",
+  "source_metrics_path": "artifacts/frozen_v1/metrics_test.json",
+  "source_metrics_sha256": "fc94af403d642f2930effa4256d5999f3e4230599aa77bd7934efe7b6179b92c",
+  "source_bootstrap_path": "artifacts/audit/bootstrap_test_v1.csv",
+  "source_bootstrap_sha256": "bafb35298a1de245ee706692e4a8835478c73abf3c215e4eb80cea756f03b395",
+  "source_operational_path": "artifacts/audit/operational_rates.csv",
+  "source_operational_sha256": "b34b027f42fe5d376d2d8e5dad723c40abf65bfdef37f820ea224c76fe4a0801",
+  "threshold": 0.525,
+  "n_samples": 3000,
+  "metrics": {
+    "pr_auc": 0.20420446319791113,
+    "roc_auc": 0.6276878325255364,
+    "precision": 0.20042872454448016,
+    "recall": 0.48195876288659795,
+    "f1": 0.2831188493565481,
+    "brier_score": 0.2325031978855005,
+    "true_positives": 187,
+    "false_positives": 746,
+    "false_negatives": 201,
+    "true_negatives": 1866,
+    "n_samples": 3000,
+    "positive_rate": 0.12933333333333333,
+    "threshold": 0.525
+  },
+  "bootstrap_intervals": [
+    {
+      "metric": "pr_auc",
+      "point": 0.20420446319791113,
+      "ci_low": 0.17775467088283928,
+      "ci_high": 0.23860535536331434,
+      "n_bootstrap": 2000,
+      "seed": 42
+    },
+    {
+      "metric": "roc_auc",
+      "point": 0.6276878325255364,
+      "ci_low": 0.5979089593590651,
+      "ci_high": 0.6569321675634128,
+      "n_bootstrap": 2000,
+      "seed": 42
+    },
+    {
+      "metric": "precision",
+      "point": 0.20042872454448016,
+      "ci_low": 0.17522179135650934,
+      "ci_high": 0.22605140614827268,
+      "n_bootstrap": 2000,
+      "seed": 42
+    },
+    {
+      "metric": "recall",
+      "point": 0.48195876288659795,
+      "ci_low": 0.43262187941592084,
+      "ci_high": 0.5295844140055114,
+      "n_bootstrap": 2000,
+      "seed": 42
+    },
+    {
+      "metric": "f1",
+      "point": 0.2831188493565481,
+      "ci_low": 0.2519060865386392,
+      "ci_high": 0.3133079238998142,
+      "n_bootstrap": 2000,
+      "seed": 42
+    }
+  ],
+  "selected_threshold_per_1000": {
+    "threshold": 0.525,
+    "reviews_per_1000": 311.0,
+    "true_positives_per_1000": 62.33333333333333,
+    "false_positives_per_1000": 248.66666666666666,
+    "missed_positives_per_1000": 67.0,
+    "precision": 0.20042872454448016,
+    "recall": 0.48195876288659795
+  },
+  "documentation": [
+    "docs/methodological_audit.md",
+    "docs/model_card.md"
+  ],
+  "note": "This export did not score the frozen test set and did not build test curves from these summary numbers."
+}
