@@ -42,7 +42,9 @@ uv pip compile pyproject.toml --python 3.12 --extra dev --extra security --gener
 
 MLflow 3.15.x requires `cryptography<50`, so the lock stays on `cryptography==49.0.0`. CVE-2026-69247 (fixed in 50.0.0) is listed in `.trivyignore` until MLflow allows cryptography 50. This project does not decrypt attacker-supplied PKCS#7 EnvelopedData.
 
-Runtime floors for the image scan: `mlflow>=3.15.0`, `pyarrow>=23.0.1`, `msgpack>=1.2.1`, `setuptools>=78.1.1`.
+Runtime floors for the image scan: `mlflow>=3.15.0`, `pyarrow>=23.0.1`, `msgpack>=1.2.1`, `setuptools>=78.1.1`, `gitpython>=3.1.60`, `urllib3>=2.8.0`.
+
+GitPython 3.1.59 and urllib3 2.7.0 were HIGH in the image scan. The lock now resolves GitPython 3.2.1 and urllib3 2.8.0. Those releases include the fixes for CVE-2026-87817, CVE-2026-87819, CVE-2026-97687 and CVE-2026-97689. Do not add those identifiers to `.trivyignore`.
 
 Trivy 0.69 also reads `pip/_vendor/bom.cdx.json` (vendored CycloneDX) and reports those wheel versions as if they were installed (`setuptools 70.3.0`, `msgpack 1.1.2`). The runtime image deletes `*.cdx.json` so the scan follows site-packages METADATA instead. Do not ignore GHSA-6v7p-g79w-8964 or CVE-2025-47273 unless those versions are actually importable.
 
